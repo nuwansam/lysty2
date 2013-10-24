@@ -14,6 +14,8 @@ public class PropertyManager {
 
 	public static final String EXTRACTOR_FOLDER_PATH = "extractor_folder_path";
 
+	public static final String SQLS_DIR = "sqls_dir";
+
 	public static void loadProperties(String pathToPropertiesFile) {
 		ResourceBundle rb = ResourceBundle.getBundle("org.lysty.core.config");
 		Enumeration<String> keys = rb.getKeys();

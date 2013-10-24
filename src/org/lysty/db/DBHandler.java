@@ -1,11 +1,14 @@
 package org.lysty.db;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +20,8 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.log4j.Logger;
+import org.h2.tools.RunScript;
+import org.lysty.core.PropertyManager;
 import org.lysty.dao.Song;
 import org.lysty.extractors.FeatureExtractor;
 
@@ -32,6 +37,84 @@ public class DBHandler {
 		InputStream inputStream = null;
 		inputStream = Resources.getResourceAsStream(resource);
 		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+		try {
+			updateDB();
+		} catch (SQLException e) {
+			logger.error("Could not update DB", e);
+		}
+	}
+
+	public static void updateDB() throws FileNotFoundException, SQLException {
+		int n = getLastDBUpdateScript();
+		File sqlsDir = new File(
+				PropertyManager.getProperty(PropertyManager.SQLS_DIR));
+		File[] scripts = sqlsDir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File file) {
+				if (file.getName().endsWith(".sql"))
+					return true;
+				return false;
+			}
+		});
+
+		File[] scriptsOrdered = new File[scripts.length];
+		for (File script : scripts) {
+			scriptsOrdered[getScriptNumber(script)] = script;
+		}
+
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		try {
+			Connection connection = session.getConnection();
+			for (int i = n + 1; i < scriptsOrdered.length; i++) {
+				logger.info("Running db script: " + scriptsOrdered[i].getName());
+				RunScript
+						.execute(connection, new FileReader(scriptsOrdered[i]));
+				setLastRunScriptNum(i);
+			}
+
+			logger.info("DB Update complete");
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+	}
+
+	private static void setLastRunScriptNum(int last) {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			mapper.setLastDBScriptNum(last);
+			session.commit();
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+	}
+
+	private static int getScriptNumber(File script) {
+		String numStr = script.getName().split("_")[0];
+		return Integer.parseInt(numStr);
+	}
+
+	private static int getLastDBUpdateScript() {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		Integer last = null;
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			last = mapper.getLastDBScriptNum();
+			if (last == null) {
+				return -1;
+			}
+			return last;
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+			return -1;
+		} finally {
+			session.close();
+		}
 	}
 
 	public static DBHandler getInstance() {
@@ -78,8 +161,9 @@ public class DBHandler {
 				mapper.insertAttribute(song.getId(), entry.getKey(),
 						entry.getValue());
 			}
+			session.commit();
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -99,7 +183,7 @@ public class DBHandler {
 					.getAttributes(song));
 			song.setAttributes(attribs);
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -130,7 +214,7 @@ public class DBHandler {
 			song.setId(id);
 			fillAttributes(song);
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -153,7 +237,7 @@ public class DBHandler {
 				try {
 					id = Long.parseLong(String.valueOf(mapEntry.get("ID")));
 				} catch (Exception e) {
-					logger.error("DB Error",e);
+					logger.error("DB Error", e);
 				}
 				song = songMap.get(id);
 				if (song == null) {
@@ -168,7 +252,7 @@ public class DBHandler {
 			}
 			return new ArrayList<Song>(songMap.values());
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 			return null;
 		} finally {
 			session.close();
@@ -183,7 +267,7 @@ public class DBHandler {
 			mapper.setFolderIndexTimestamp(folder.getPath(), time);
 			session.commit();
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -212,7 +296,7 @@ public class DBHandler {
 				return new HashMap<String, Long>();
 			return map;
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -230,7 +314,7 @@ public class DBHandler {
 				return new HashMap<String, Long>();
 			return map;
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}
@@ -260,7 +344,7 @@ public class DBHandler {
 			}
 			return timestamp;
 		} catch (Exception e) {
-			logger.error("DB Error",e);
+			logger.error("DB Error", e);
 		} finally {
 			session.close();
 		}

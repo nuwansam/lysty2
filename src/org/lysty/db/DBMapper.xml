@@ -12,6 +12,17 @@
 		select attribute,value from attribs where songid=#{id};
 	</select>
 
+	<select id="getLastDBScriptNum" parameterType="Integer" resultType="Integer">
+		select value from
+		config
+		where name='last_run_script';
+	</select>
+
+	<insert id="setLastDBScriptNum" parameterType="Integer">
+		merge into config
+		(name,value) key(name) values ('last_run_script',#{last});
+	</insert>
+
 	<insert id="insertSong" parameterType="Song">
 		insert into songs
 		(name,path) values (#{name},#{filepath});

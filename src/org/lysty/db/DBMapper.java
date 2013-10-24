@@ -26,4 +26,8 @@ public interface DBMapper {
 	Long getExtractorTimestamp(String name);
 
 	void insertExtractorTimestamp(String name, long currentTimeMillis);
+
+	Integer getLastDBScriptNum();
+
+	void setLastDBScriptNum(int last);
 }

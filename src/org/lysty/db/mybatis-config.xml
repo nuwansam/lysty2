@@ -12,7 +12,8 @@
 			<transactionManager type="JDBC" />
 			<dataSource type="POOLED">
 				<property name="driver" value="org.h2.Driver" />
-				<property name="url" value="jdbc:h2:~/test" />
+				<property name="url"
+					value="jdbc:h2:file:db/lystydb.db;" />
 				<!-- <property name="url" value="jdbc:h2:tcp://localhost/~/test;AUTO_SERVER=TRUE" 
 					/> -->
 				<property name="username" value="sa" />

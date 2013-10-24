@@ -1,0 +1,9 @@
+10-25 00:42:07 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Table "CONFIG" not found; SQL statement:
+select value from
+		config
+		where name='last_run_script'; [42102-173]
+10-25 00:42:10 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Timeout trying to lock table "CONFIG"; SQL statement:
+merge into config
+		(name,value) key(name) values ('last_run_script',?); [50200-173]
