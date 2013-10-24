@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lysty.db.DBMapper">
+	<select id="getSongId" parameterType="Song" resultType="long">
+		select id
+		from songs where path=#{filepath};
+	</select>
+
+	<select id="getAttributes" parameterType="Song" resultType="map">
+		select attribute,value from attribs where songid=#{id};
+	</select>
+
+	<insert id="insertSong" parameterType="Song">
+		insert into songs
+		(name,path) values (#{name},#{filepath});
+	</insert>
+
+	<select id="insertAttribute" parameterType="Map">
+		insert into attribs
+		(songid,attribute,value) values (#{0},#{1},#{2});
+	</select>
+
+	<select id="setFolderIndexTimestamp" parameterType="Map">
+		merge into
+		folder_index_timestamps
+		(folder,lastindextime) key(folder) values
+		(#{0},#{1});
+	</select>
+
+	<select id="getFolderIndexMap" resultType="Map">
+		select * from
+		folder_index_timestamps
+	</select>
+
+	<select id="getExtractorTimestampMap" resultType="Map">
+		select
+		name,addedtime from
+		extractors
+	</select>
+
+	<select id="getSongs" resultType="Map" parameterType="String">
+		select
+		id,name,path,attribute,value from
+		(select * from songs) as a
+		join
+		attribs on a.id=attribs.songid;
+	</select>
+
+	<select id="getExtractorTimestamp" parameterType="String"
+		resultType="long">
+		select addedtime from extractors where name=#{name};
+	</select>
+
+	<insert id="insertExtractorTimestamp" parameterType="Map">
+		insert into
+		extractors
+		(name,addedtime) values (#{0},#{1});
+	</insert>
+
+</mapper>
+
