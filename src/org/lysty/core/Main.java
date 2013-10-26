@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.lysty.dao.Song;
 import org.lysty.db.DBHandler;
+import org.lysty.players.PlayerManager;
 import org.lysty.ui.PlaylistProfileWindow;
 import org.vamp_plugins.Plugin;
 import org.vamp_plugins.PluginLoader;
@@ -38,6 +39,7 @@ public class Main {
 		logger.info("strategies loaded.");
 		ExtractorManager.loadExtractors();
 		logger.info("extractors loaded.");
+		PlayerManager.getInstance();
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {

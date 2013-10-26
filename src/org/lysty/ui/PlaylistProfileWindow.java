@@ -392,7 +392,7 @@ public class PlaylistProfileWindow extends LFrame {
 	}
 
 	private void showPlaylist(List<Song> list) {
-		PlaylistPreviewWindow win = new PlaylistPreviewWindow(list);
+		PlaylistPreviewWindow win = new PlaylistPreviewWindow(list, true);
 	}
 
 	protected void showIndexDialog() {
