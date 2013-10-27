@@ -6,6 +6,8 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.StrategyFactory;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
@@ -43,10 +45,10 @@ public class StrategySettingsWindow extends LFrame {
 	public void createUi(PlaylistGenerator strategy) {
 		this.strategy = strategy;
 		settingsPanel = StrategyFactory.getStrategySettingsPanel(strategy);
-		JPanel contentPanel = new JPanel();
+		JPanel contentPanel = new JPanel(new MigLayout("insets 6 6 6 6"));
 		this.setContentPane(contentPanel);
-		contentPanel.add(settingsPanel);
-		contentPanel.add(getControlPanel());
+		contentPanel.add(settingsPanel, "span");
+		contentPanel.add(getControlPanel(), "span");
 		showUi();
 	}
 

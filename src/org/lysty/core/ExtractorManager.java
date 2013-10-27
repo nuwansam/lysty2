@@ -51,6 +51,7 @@ public class ExtractorManager {
 		File jarFile;
 		for (File sDir : sDirs) {
 			try {
+				manager = PluginManagerFactory.createPluginManager();
 				jarFile = new File(sDir.getAbsolutePath() + File.separator
 						+ EXTRACTOR_JAR_NAME);
 				manager.addPluginsFrom(jarFile.toURI());

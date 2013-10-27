@@ -182,9 +182,11 @@ public class StrategyFactory {
 		});
 		File jarFile;
 		for (File sDir : sDirs) {
+			manager = PluginManagerFactory.createPluginManager();
 			jarFile = new File(sDir.getAbsolutePath() + File.separator
 					+ STRATEGY_JAR_NAME);
 			manager.addPluginsFrom(jarFile.toURI());
+
 			PlaylistGenerator strategy = manager
 					.getPlugin(PlaylistGenerator.class);
 			if (strategy != null) {

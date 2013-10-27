@@ -268,7 +268,7 @@ public class PlaylistProfileWindow extends LFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					generatePlayList();
+					generatePlayList(true);
 				} catch (Exception e1) {
 					logger.error("Error generating playlist", e1);
 				}
@@ -367,7 +367,7 @@ public class PlaylistProfileWindow extends LFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					generatePlayList();
+					generatePlayList(false);
 				} catch (Exception e1) {
 					logger.error("Error generating playlist", e1);
 				}
@@ -380,19 +380,19 @@ public class PlaylistProfileWindow extends LFrame {
 		return menu;
 	}
 
-	protected void generatePlayList() throws ClassNotFoundException,
-			InstantiationException, IllegalAccessException,
-			StrategyInitiationException {
+	protected void generatePlayList(boolean autoPlay)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, StrategyInitiationException {
 		StrategyConfiguration config = (currentStrategySettings == null) ? StrategyFactory
 				.getDefaultOrLastSettings(currentStrategy)
 				: currentStrategySettings;
 		List<Song> list = StrategyFactory.getPlaylistByStrategy(
 				currentStrategy, playlistModel.getSelProfile(), config);
-		showPlaylist(list);
+		showPlaylist(list, autoPlay);
 	}
 
-	private void showPlaylist(List<Song> list) {
-		PlaylistPreviewWindow win = new PlaylistPreviewWindow(list, true);
+	private void showPlaylist(List<Song> list, boolean autoPlay) {
+		PlaylistPreviewWindow win = new PlaylistPreviewWindow(list, autoPlay);
 	}
 
 	protected void showIndexDialog() {

@@ -1,4 +1,4 @@
-package org.lysty.strategies.fillByFeatureMatch;
+package org.lysty.strategies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,27 +13,18 @@ import org.lysty.core.PlaylistGenerator;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
 import org.lysty.db.DBHandler;
-import org.lysty.strategies.AbstractStrategySettingsPanel;
-import org.lysty.strategies.StrategyConfiguration;
-import org.lysty.util.Utils;
 
-@PluginImplementation
-public class DefaultStrategy implements PlaylistGenerator {
+public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 
-	private static final int VOTES_ON_MATCH = 10;
-	public static final String FEATURE_TO_MATCH = "FEATURE_TO_MATCH";
-	private static final String FEATURE_ARTIST = "artist";
+	protected Map<String, String> attributes;
 
 	@Override
 	public List<Song> getPlaylist(SongSelectionProfile profile,
 			StrategyConfiguration config) {
-		Map<String, String> attributes = config.getAttributes();
-		String featureToFillOn = attributes.get(FEATURE_TO_MATCH);
-		if (featureToFillOn == null) {
-			featureToFillOn = FEATURE_ARTIST;
-		}
-		Map<Song, Map<Song, Integer>> votesMap = getVotesMap(
-				profile.getRelPosMap(), featureToFillOn);
+		attributes = config.getAttributes();
+		readAttributes(attributes);
+		Map<Song, Map<Song, Integer>> votesMap = getVotesMap(profile
+				.getRelPosMap());
 
 		List<Song> playlist = profile.getPartialPlaylist();
 
@@ -104,6 +95,8 @@ public class DefaultStrategy implements PlaylistGenerator {
 		return playlist;
 	}
 
+	protected abstract void readAttributes(Map<String, String> attributes);
+
 	private void fillCandidates(Map<Song, Integer> candidates,
 			Map<Song, Integer> votedSongs, float weight, List<Song> alreadyIns) {
 		Iterator<Entry<Song, Integer>> it = votedSongs.entrySet().iterator();
@@ -121,7 +114,7 @@ public class DefaultStrategy implements PlaylistGenerator {
 	}
 
 	private Map<Song, Map<Song, Integer>> getVotesMap(
-			Map<Song, Integer> relPosMap, String feature) {
+			Map<Song, Integer> relPosMap) {
 		Song song;
 		List<Song> allSongs = DBHandler.getInstance().getSongs(null);
 
@@ -139,7 +132,7 @@ public class DefaultStrategy implements PlaylistGenerator {
 			song = it.next();
 			listOfVotes = new HashMap<Song, Integer>();
 			for (Song c : allSongs) {
-				votes = getVotes(song, c, feature);
+				votes = getVotes(song, c);
 				if (votes > 0) {
 					listOfVotes.put(c, votes);
 				}
@@ -149,21 +142,7 @@ public class DefaultStrategy implements PlaylistGenerator {
 		return votesMap;
 	}
 
-	private int getVotes(Song song, Song candidate, String feature) {
-		String sArtist = song.getAttribute(feature);
-		String cArtist = candidate.getAttribute(feature);
-
-		if (Utils.stringNotNullOrEmpty(sArtist)
-				&& Utils.stringNotNullOrEmpty(cArtist)) {
-			sArtist = sArtist.toLowerCase().trim();
-			cArtist = cArtist.toLowerCase().trim();
-			if (sArtist.contains(cArtist) || cArtist.contains(sArtist)) {
-				return VOTES_ON_MATCH;
-			}
-			return 0;
-		}
-		return 0;
-	}
+	protected abstract int getVotes(Song song, Song candidate);
 
 	private Song getCandidateSong(Map<Song, Integer> candidates, int rand) {
 		int cnt = 0;
@@ -176,21 +155,5 @@ public class DefaultStrategy implements PlaylistGenerator {
 				return entry.getKey();
 		}
 		return null;
-	}
-
-	@Override
-	public String getStrategyDisplayName() {
-		return "Meta tag Match";
-	}
-
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return "default";
-	}
-
-	@Override
-	public AbstractStrategySettingsPanel getStrategySettingsFrame() {
-		return new DefaultStrategySettingsFrame();
 	}
 }

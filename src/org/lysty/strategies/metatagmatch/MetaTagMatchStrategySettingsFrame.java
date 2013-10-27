@@ -1,4 +1,4 @@
-package org.lysty.strategies.fillByFeatureMatch;
+package org.lysty.strategies.metatagmatch;
 
 import java.awt.Dimension;
 
@@ -10,14 +10,14 @@ import org.lysty.extractors.FeatureExtractor;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.StrategyConfiguration;
 
-public class DefaultStrategySettingsFrame extends AbstractStrategySettingsPanel {
+public class MetaTagMatchStrategySettingsFrame extends AbstractStrategySettingsPanel {
 
 	JComboBox cmbFeatures;
 
 	@Override
 	public StrategyConfiguration getConfig() {
 		StrategyConfiguration config = new StrategyConfiguration();
-		config.setAttribute(DefaultStrategy.FEATURE_TO_MATCH, cmbFeatures
+		config.setAttribute(MetaTagMatchStrategy.FEATURE_TO_MATCH, cmbFeatures
 				.getSelectedItem().toString());
 		return config;
 	}
@@ -26,7 +26,7 @@ public class DefaultStrategySettingsFrame extends AbstractStrategySettingsPanel 
 	public void createUI() {
 		JLabel lblFeature = new JLabel("Feature to match on");
 		FeatureExtractor extractor = ExtractorManager
-				.getExtractor("com.lysty.core.extractors.IDv3FeatureExtractor");
+				.getExtractor("org.lysty.extractors.MetaTagExtractor");
 		cmbFeatures = new JComboBox(extractor.getSupportedAttributes()
 				.toArray());
 		this.add(lblFeature);
@@ -37,7 +37,7 @@ public class DefaultStrategySettingsFrame extends AbstractStrategySettingsPanel 
 	@Override
 	public void setConfig(StrategyConfiguration config) {
 		cmbFeatures.setSelectedItem(config.getAttributes()
-				.get(DefaultStrategy.FEATURE_TO_MATCH).toString());
+				.get(MetaTagMatchStrategy.FEATURE_TO_MATCH).toString());
 	}
 
 	@Override
