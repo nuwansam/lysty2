@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
@@ -56,6 +58,7 @@ public class ExtractorManager {
 						.getPlugin(FeatureExtractor.class);
 				if (extractor != null) {
 					extractors.add(extractor);
+					logger.info("Loaded extractor: " + sDir.getName());
 					Long timestamp = DBHandler.getInstance()
 							.getSetExtractorTimestamp(extractor);
 					extractorTimestamp.put(extractor, timestamp);
@@ -73,6 +76,14 @@ public class ExtractorManager {
 				return extractor;
 		}
 		return null;
+	}
+
+	public static String[] getSupportedFormats() {
+		Set<String> set = new HashSet<String>();
+		for (FeatureExtractor extractor : extractors) {
+			set.addAll(extractor.getSupportedFileFormats());
+		}
+		return set.toArray(new String[set.size()]);
 	}
 
 }

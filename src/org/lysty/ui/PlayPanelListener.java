@@ -2,7 +2,7 @@ package org.lysty.ui;
 
 public interface PlayPanelListener {
 
-	public void play();
+	public void play(int playFrom);
 
 	public void pause();
 

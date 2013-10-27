@@ -189,6 +189,7 @@ public class StrategyFactory {
 					.getPlugin(PlaylistGenerator.class);
 			if (strategy != null) {
 				allStrategies.add(strategy);
+				logger.info("Loaded fill strategy: " + sDir.getName());
 			}
 		}
 	}

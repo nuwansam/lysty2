@@ -100,6 +100,7 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 	@Override
 	public void notifyComplete() {
 		lblMessage.setText("Indexing Complete");
+		progressBar.setValue(progressBar.getMaximum());
 		btnCancel.setText(TEXT_OK);
 	}
 

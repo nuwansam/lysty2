@@ -22,7 +22,7 @@ public class SongIndexer {
 
 	// update notification precision. 100 means every 1% completion is notified.
 	private static final int INDEX_UPDATE_PERCENTAGE = 100;
-	static String[] exts = new String[] { "mp3" };
+	static String[] exts = null;
 	static FileFilter filter = new FileFilter() {
 
 		@Override
@@ -44,6 +44,7 @@ public class SongIndexer {
 	public static List<Song> songList = new ArrayList<Song>(); // song list to
 																// index
 	static File[] list; // temp var to hold file filter results;
+	private static List<Song> allSongs;
 	private static File currentIndexingFolder = null;
 	private static Long maxExtractorTimstamp;
 
@@ -68,17 +69,19 @@ public class SongIndexer {
 		long id;
 		if (list == null)
 			return;
-		Song song;
+		Song song = null;
 		Long lastIndex;
 		for (File file : list) {
 			if (file.isDirectory() && depths > 0) {
 				createFileList(file, depths - 1, isIncremental);
 			} else {
 				lastIndex = folderIndexMap.get(folder.getPath());
-				song = DBHandler.getInstance().getSong(file);
+				int songInDBIndex = allSongs.indexOf(new Song(file));
+				if (songInDBIndex >= 0)
+					song = allSongs.get(songInDBIndex);
 				if (!isIncremental
-						|| (lastIndex == null || song == null || maxExtractorTimstamp > lastIndex)) {
-					if (song == null) {
+						|| (lastIndex == null || songInDBIndex == -1 || maxExtractorTimstamp > lastIndex)) {
+					if (songInDBIndex == -1) {
 						song = new Song();
 						song.setFile(file);
 						song.setName(file.getName());
@@ -111,6 +114,7 @@ public class SongIndexer {
 			UpdateListener updater) {
 		init();
 		createFolderIndexMap();
+		allSongs = DBHandler.getInstance().getSongs(null);
 		for (File folder : folders) {
 			createFileList(folder, depths, isIncremental);
 		}
@@ -123,6 +127,7 @@ public class SongIndexer {
 		isCancelled = false;
 		songList = new ArrayList<Song>();
 		currentIndexingFolder = null;
+		exts = ExtractorManager.getSupportedFormats();
 	}
 
 	/**

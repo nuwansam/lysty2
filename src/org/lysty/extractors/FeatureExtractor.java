@@ -21,4 +21,6 @@ public interface FeatureExtractor extends Plugin {
 
 	public List<String> getSupportedAttributes();
 
+	public List<String> getSupportedFileFormats();
+
 }

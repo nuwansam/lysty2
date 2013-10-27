@@ -35,6 +35,7 @@ public class Main {
 	public static void main(String[] args) {
 		DOMConfigurator.configure("config/log4j_config.xml");
 		PropertyManager.loadProperties(PATH_TO_PROPERTIES_FILE);
+		DBHandler.getInstance();
 		StrategyFactory.loadStrategies();
 		logger.info("strategies loaded.");
 		ExtractorManager.loadExtractors();

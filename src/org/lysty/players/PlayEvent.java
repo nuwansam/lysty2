@@ -5,10 +5,11 @@ import org.lysty.players.PlayEvent.EventType;
 public class PlayEvent {
 
 	public enum EventType {
-		PLAY_FINISHED, PLAY_STARTED
+		PLAY_STARTED, PLAY_EXCEPTION, SONG_ENDED, SONG_STOPPED
 	}
 
 	EventType eventType;
+	private int frame;
 
 	public PlayEvent(EventType eventType) {
 		this.eventType = eventType;
@@ -27,6 +28,14 @@ public class PlayEvent {
 	 */
 	public void setEventType(EventType eventType) {
 		this.eventType = eventType;
+	}
+
+	public void setFrame(int frame) {
+		this.frame = frame;
+	}
+
+	public int getFrame() {
+		return this.frame;
 	}
 
 }

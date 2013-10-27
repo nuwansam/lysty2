@@ -1,6 +1,10 @@
 package org.lysty.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -9,27 +13,74 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
+import javax.swing.JTable;
+import javax.swing.JToggleButton;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.lysty.dao.Song;
+
 public class PlayerPanel extends JPanel {
 
 	private JProgressBar progress;
-	private JButton btnStartPause;
+	private JToggleButton btnStartPause;
 	private JButton btnStop;
 	private JButton btnNext;
 	private JButton btnPrev;
 	private PlayPanelListener listener;
 	private JCheckBox chkInfin;
 	private JButton btnSleep;
-	private JButton btnRandom;
+	private JToggleButton btnRandom;
+
+	public enum PlayState {
+		PLAYING, PAUSED, STOPPED
+	}
+
+	private PlayState playState;
+	private Timer timer;
+	private int pausedOnFrame;
+
+	public PlayState getState() {
+		return playState;
+	}
+
+	public void setState(PlayState state) {
+		if (playState == state) {
+			// no state changed
+			return;
+		}
+		playState = state;
+		if (state == PlayState.PLAYING) {
+			btnStartPause.setText("Pause");
+			btnStartPause.setSelected(true);
+		} else if (state == PlayState.PAUSED) {
+			btnStartPause.setText("Start");
+			btnStartPause.setSelected(false);
+			if (timer != null)
+				timer.stop();
+		} else if (state == PlayState.STOPPED) {
+			btnStartPause.setText("Start");
+			btnStartPause.setSelected(false);
+			if (timer != null)
+				timer.stop();
+			progress.setValue(0);
+		}
+	}
+
+	public int getCurrentProgress() {
+		return progress.getValue();
+	}
 
 	public PlayerPanel(PlayPanelListener listener) {
 		this.listener = listener;
 		createUI();
 		layoutControls();
+		setState(PlayState.STOPPED);
 	}
 
 	private void layoutControls() {
@@ -45,18 +96,53 @@ public class PlayerPanel extends JPanel {
 		this.add(btnSleep, "align right");
 	}
 
+	public void setCurrentSong(Song song) {
+		try {
+			AudioFile audioFile = AudioFileIO.read(song.getFile());
+			final int duration = audioFile.getAudioHeader().getTrackLength();
+			progress.setMaximum(duration);
+			progress.setString("");
+			progress.setStringPainted(true);
+			timer = new Timer(1000, new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					// ...Update the progress bar...
+					progress.setValue(progress.getValue() + 1);
+					if (progress.getValue() >= duration) {
+						timer.stop();
+					}
+				}
+			});
+			timer.start();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private void createUI() {
 		progress = new JProgressBar();
-		btnStartPause = new JButton(new AbstractAction("Start") {
+		progress.setPreferredSize(new Dimension(400, 5));
+		progress.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				int tW = progress.getWidth();
+				int cW = e.getX();
+				int newProgress = progress.getMaximum() * cW / tW;
+				listener.play(newProgress);
+			}
+		});
+		btnStartPause = new JToggleButton("Start");
+		btnStartPause.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (btnStartPause.getText().equals("Start")) {
-					listener.play();
-					btnStartPause.setText("Pause");
-				} else if (btnStartPause.getText().equals("Pause")) {
+				if (btnStartPause.isSelected()) {
+					// pause
+					setState(PlayState.PLAYING);
+					listener.play(pausedOnFrame);
+				} else {
+					// start
+					setState(PlayState.PAUSED);
 					listener.pause();
-					btnStartPause.setText("Start");
 				}
 			}
 		});
@@ -64,6 +150,8 @@ public class PlayerPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				setState(PlayState.STOPPED);
+				pausedOnFrame = 0;
 				listener.stop();
 			}
 		});
@@ -103,16 +191,27 @@ public class PlayerPanel extends JPanel {
 					}
 				});
 				popup.add(mnuHour);
-				popup.setVisible(true);
+				popup.show(btnSleep, 0, 0);
 			}
 		});
-		btnRandom = new JButton(new AbstractAction("Randomize") {
+		btnRandom = new JToggleButton(new AbstractAction("Non Random") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				listener.setRandomize(true);
+				btnRandom.setText(btnRandom.isSelected() ? "Random"
+						: "Non Random");
+				listener.setRandomize(btnRandom.isSelected());
 			}
 		});
+		btnRandom.setSelected(false);
 
+	}
+
+	public void setCurrentProgress(int val) {
+		progress.setValue(val);
+	}
+
+	public void setPausedOnFrame(int frame) {
+		this.pausedOnFrame = frame;
 	}
 }

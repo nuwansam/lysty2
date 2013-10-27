@@ -180,7 +180,7 @@ public class DefaultStrategy implements PlaylistGenerator {
 
 	@Override
 	public String getStrategyDisplayName() {
-		return "Default";
+		return "Meta tag Match";
 	}
 
 	@Override

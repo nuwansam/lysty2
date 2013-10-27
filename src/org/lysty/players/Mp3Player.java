@@ -21,6 +21,7 @@ public class Mp3Player extends AbstractPlayer {
 
 	private static Logger logger = Logger.getLogger(Mp3Player.class);
 	private AdvancedPlayer player;
+	private boolean forceStopped;
 
 	@Override
 	public List<String> getSupportedFormats() {
@@ -31,8 +32,9 @@ public class Mp3Player extends AbstractPlayer {
 	}
 
 	@Override
-	public void play(Song song) throws SongPlayException {
+	public void play(Song song, int playFrom) throws SongPlayException {
 		try {
+			forceStopped = false;
 			player = new AdvancedPlayer(new BufferedInputStream(
 					new FileInputStream(song.getFile())));
 			PlaybackListener listener = new PlaybackListener() {
@@ -43,13 +45,16 @@ public class Mp3Player extends AbstractPlayer {
 				}
 
 				@Override
-				public void playbackFinished(PlaybackEvent arg0) {
-					playbackListener.getNotification(new PlayEvent(
-							PlayEvent.EventType.PLAY_FINISHED));
+				public void playbackFinished(PlaybackEvent event) {
+					PlayEvent playEvent = new PlayEvent(
+							forceStopped ? PlayEvent.EventType.SONG_STOPPED
+									: PlayEvent.EventType.SONG_ENDED);
+					playEvent.setFrame(event.getFrame());
+					playbackListener.getNotification(playEvent);
 				}
 			};
 			player.setPlayBackListener(listener);
-			player.play();
+			player.play(playFrom, Integer.MAX_VALUE);
 		} catch (Exception e) {
 			logger.error("Song file not found", e);
 			throw new SongPlayException();
@@ -59,12 +64,18 @@ public class Mp3Player extends AbstractPlayer {
 
 	@Override
 	public void pause() {
-		player.stop();
+		forceStopped = true;
+		if (player != null)
+			player.stop();
+		player = null;
 	}
 
 	@Override
 	public void stop() {
-		player.stop();
+		forceStopped = true;
+		if (player != null)
+			player.stop();
+		player = null;
 	}
 
 	@Override

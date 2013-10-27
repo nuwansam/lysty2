@@ -11,7 +11,7 @@ public abstract class AbstractPlayer {
 
 	public abstract List<String> getSupportedFormats();
 
-	public abstract void play(Song song) throws SongPlayException;
+	public abstract void play(Song song, int playFrom) throws SongPlayException;
 
 	public abstract void changePlayPosition(int newPosition)
 			throws SongPlayException;
