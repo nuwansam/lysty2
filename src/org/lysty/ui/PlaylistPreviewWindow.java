@@ -221,8 +221,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
 					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
 							"Error playing song: " + song.getName());
-				} else if (event.getEventType() == PlayEvent.EventType.SONG_STOPPED) {
+				} else if (event.getEventType() == PlayEvent.EventType.SONG_PAUSED) {
 					playerPanel.setPausedOnFrame(event.getFrame());
+				} else if (event.getEventType() == PlayEvent.EventType.SONG_STOPPED) {
+					playerPanel.setPausedOnFrame(0);
 				}
 			}
 		});
@@ -236,6 +238,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void stop() {
+		playerPanel.setCurrentProgress(0);
 		SongPlayer.getInstance().stop();
 	}
 

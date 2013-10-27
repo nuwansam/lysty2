@@ -5,7 +5,7 @@ import org.lysty.players.PlayEvent.EventType;
 public class PlayEvent {
 
 	public enum EventType {
-		PLAY_STARTED, PLAY_EXCEPTION, SONG_ENDED, SONG_STOPPED
+		PLAY_STARTED, PLAY_EXCEPTION, SONG_ENDED, SONG_STOPPED, SONG_PAUSED
 	}
 
 	EventType eventType;

@@ -22,6 +22,7 @@ public class Mp3Player extends AbstractPlayer {
 	private static Logger logger = Logger.getLogger(Mp3Player.class);
 	private AdvancedPlayer player;
 	private boolean forceStopped;
+	private boolean forcePaused;
 
 	@Override
 	public List<String> getSupportedFormats() {
@@ -32,9 +33,11 @@ public class Mp3Player extends AbstractPlayer {
 	}
 
 	@Override
-	public void play(Song song, int playFrom) throws SongPlayException {
+	public void play(final Song song, final int playFrom)
+			throws SongPlayException {
 		try {
 			forceStopped = false;
+			forcePaused = false;
 			player = new AdvancedPlayer(new BufferedInputStream(
 					new FileInputStream(song.getFile())));
 			PlaybackListener listener = new PlaybackListener() {
@@ -48,8 +51,11 @@ public class Mp3Player extends AbstractPlayer {
 				public void playbackFinished(PlaybackEvent event) {
 					PlayEvent playEvent = new PlayEvent(
 							forceStopped ? PlayEvent.EventType.SONG_STOPPED
-									: PlayEvent.EventType.SONG_ENDED);
-					playEvent.setFrame(event.getFrame());
+									: forcePaused ? PlayEvent.EventType.SONG_PAUSED
+											: PlayEvent.EventType.SONG_ENDED);
+					playEvent.setFrame(playFrom
+							+ (36 * event.getFrame() / 1000));
+
 					playbackListener.getNotification(playEvent);
 				}
 			};
@@ -64,7 +70,8 @@ public class Mp3Player extends AbstractPlayer {
 
 	@Override
 	public void pause() {
-		forceStopped = true;
+		forceStopped = false;
+		forcePaused = true;
 		if (player != null)
 			player.stop();
 		player = null;
@@ -73,6 +80,7 @@ public class Mp3Player extends AbstractPlayer {
 	@Override
 	public void stop() {
 		forceStopped = true;
+		forcePaused = false;
 		if (player != null)
 			player.stop();
 		player = null;

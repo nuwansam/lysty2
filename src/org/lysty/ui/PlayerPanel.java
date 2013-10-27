@@ -23,7 +23,9 @@ import net.miginfocom.swing.MigLayout;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.AudioHeader;
 import org.lysty.dao.Song;
+import org.lysty.extractors.MetaTagExtractor;
 
 public class PlayerPanel extends JPanel {
 
@@ -98,8 +100,15 @@ public class PlayerPanel extends JPanel {
 
 	public void setCurrentSong(Song song) {
 		try {
-			AudioFile audioFile = AudioFileIO.read(song.getFile());
-			final int duration = audioFile.getAudioHeader().getTrackLength();
+			int duration = 0;
+			if (song.getAttribute(MetaTagExtractor.FEATURE_DURATION) != null) {
+				duration = Integer.parseInt(song
+						.getAttribute(MetaTagExtractor.FEATURE_DURATION));
+			} else {
+				AudioFile audioFile = AudioFileIO.read(song.getFile());
+				duration = audioFile.getAudioHeader().getTrackLength();
+			}
+			final int fDuration = duration;
 			progress.setMaximum(duration);
 			progress.setString("");
 			progress.setStringPainted(true);
@@ -107,7 +116,7 @@ public class PlayerPanel extends JPanel {
 				public void actionPerformed(ActionEvent evt) {
 					// ...Update the progress bar...
 					progress.setValue(progress.getValue() + 1);
-					if (progress.getValue() >= duration) {
+					if (progress.getValue() >= fDuration) {
 						timer.stop();
 					}
 				}
@@ -159,6 +168,8 @@ public class PlayerPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				listener.stop();
+				setState(PlayerPanel.PlayState.PLAYING);
 				listener.next();
 			}
 		});
@@ -166,6 +177,8 @@ public class PlayerPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				listener.stop();
+				setState(PlayerPanel.PlayState.PLAYING);
 				listener.prev();
 			}
 		});
