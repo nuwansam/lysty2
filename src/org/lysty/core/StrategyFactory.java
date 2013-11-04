@@ -37,11 +37,13 @@ public class StrategyFactory {
 	private static Logger logger = Logger.getLogger(StrategyFactory.class);
 
 	public static List<Song> getPlaylistByStrategy(PlaylistGenerator strategy,
-			SongSelectionProfile profile, StrategyConfiguration config)
+			SongSelectionProfile profile, StrategyConfiguration config,
+			boolean isCircular, boolean mustIncludeSeeds, List<Song> blacklist)
 			throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, StrategyInitiationException {
 
-		List<Song> playlist = strategy.getPlaylist(profile, config);
+		List<Song> playlist = strategy.getPlaylist(profile, config, isCircular,
+				mustIncludeSeeds, blacklist);
 		return cleanPlaylist(playlist);
 	}
 

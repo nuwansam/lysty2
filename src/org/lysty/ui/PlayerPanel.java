@@ -35,7 +35,7 @@ public class PlayerPanel extends JPanel {
 	private JButton btnNext;
 	private JButton btnPrev;
 	private PlayPanelListener listener;
-	private JCheckBox chkInfin;
+	private JToggleButton btnInfin;
 	private JButton btnSleep;
 	private JToggleButton btnRandom;
 
@@ -93,12 +93,12 @@ public class PlayerPanel extends JPanel {
 		this.add(btnStartPause);
 		this.add(btnPrev);
 		this.add(btnNext, "wrap");
-		this.add(chkInfin);
+		this.add(btnInfin);
 		this.add(btnRandom);
 		this.add(btnSleep, "align right");
 	}
 
-	public void setCurrentSong(Song song) {
+	public void setCurrentSong(Song song, int playFrom) {
 		try {
 			int duration = 0;
 			if (song.getAttribute(MetaTagExtractor.FEATURE_DURATION) != null) {
@@ -109,9 +109,15 @@ public class PlayerPanel extends JPanel {
 				duration = audioFile.getAudioHeader().getTrackLength();
 			}
 			final int fDuration = duration;
-			progress.setMaximum(duration);
-			progress.setString("");
-			progress.setStringPainted(true);
+			if (playFrom == 0) {
+				progress.setValue(0);
+				progress.setMaximum(duration);
+				progress.setString("");
+				progress.setStringPainted(true);
+			}
+			if (timer != null) {
+				timer.stop();
+			}
 			timer = new Timer(1000, new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					// ...Update the progress bar...
@@ -130,13 +136,15 @@ public class PlayerPanel extends JPanel {
 
 	private void createUI() {
 		progress = new JProgressBar();
-		progress.setPreferredSize(new Dimension(400, 5));
+		progress.setPreferredSize(new Dimension(300, 7));
+		progress.setMaximumSize(new Dimension(300, 7));
 		progress.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				int tW = progress.getWidth();
 				int cW = e.getX();
 				int newProgress = progress.getMaximum() * cW / tW;
-				listener.play(newProgress);
+				listener.play((int) Math.ceil(newProgress * 41));
+				progress.setValue(newProgress);
 			}
 		});
 		btnStartPause = new JToggleButton("Start");
@@ -183,14 +191,15 @@ public class PlayerPanel extends JPanel {
 			}
 		});
 
-		chkInfin = new JCheckBox("Infini Play");
-		chkInfin.addChangeListener(new ChangeListener() {
+		btnInfin = new JToggleButton("Infini Play");
+		btnInfin.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				listener.setInfinyPlay(chkInfin.isSelected());
+				listener.setInfinyPlay(btnInfin.isSelected());
 			}
 		});
+		btnInfin.setSelected(true);
 		btnSleep = new JButton(new AbstractAction("Sleep") {
 
 			@Override
@@ -227,4 +236,9 @@ public class PlayerPanel extends JPanel {
 	public void setPausedOnFrame(int frame) {
 		this.pausedOnFrame = frame;
 	}
+
+	public boolean getIsInfiniPlay() {
+		return btnInfin.isSelected();
+	}
+
 }

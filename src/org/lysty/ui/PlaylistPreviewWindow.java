@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -29,19 +30,21 @@ import javax.swing.table.TableColumnModel;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.log4j.Logger;
+import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.SongPlayer;
+import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
-import org.lysty.players.AbstractPlayer;
+import org.lysty.dao.SongSelectionProfile;
 import org.lysty.players.PlayEvent;
 import org.lysty.players.PlaybackListener;
-import org.lysty.players.PlayerManager;
-import org.lysty.ui.PlayerPanel.PlayState;
+import org.lysty.strategies.random.RandomStrategy;
 import org.lysty.ui.exception.SongNotIndexedException;
-import org.lysty.ui.exception.SongPlayException;
 import org.lysty.util.FileUtils;
 
 public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
+	private static final int INFINI_PLAY_GENLIST_SIZE = 8;
+	private static final int INFINI_PLAY_LAST_N_TOCHECK = 8;
 	private List<Song> list;
 	private PlaylistModel model;
 	private int currentSongIndex;
@@ -50,10 +53,48 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	private JTable table;
 	private PlayerPanel playerPanel;
 	private boolean isRandomized;
+	private SongSelectionProfile selProfile;
+	private List<Song> manuallyAdded;
+	private List<Song> manuallySkipped;
+	private PlaybackListener playbackListener;
 	static Logger logger = Logger.getLogger(PlaylistPreviewWindow.class);
 
-	public PlaylistPreviewWindow(List<Song> songList, boolean startPlay) {
+	private static PlaylistPreviewWindow self = null;
+
+	public static PlaylistPreviewWindow getInstance() {
+		if (self == null) {
+			self = new PlaylistPreviewWindow();
+		}
+		return self;
+	}
+
+	private PlaylistPreviewWindow() {
 		super("Preview Playlist");
+		init(new ArrayList<Song>(), false, null);
+		playbackListener = new PlaybackListener() {
+
+			@Override
+			public void getNotification(PlayEvent event) {
+				if (event.getEventType() == PlayEvent.EventType.SONG_ENDED) {
+					// previous song has ended;
+					playNextSong();
+				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
+					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
+							"Error playing song: ");
+					playerPanel.setState(PlayerPanel.PlayState.STOPPED);
+				} else if (event.getEventType() == PlayEvent.EventType.SONG_PAUSED) {
+					playerPanel.setPausedOnFrame(event.getFrame());
+				} else if (event.getEventType() == PlayEvent.EventType.SONG_STOPPED) {
+					playerPanel.setPausedOnFrame(0);
+				}
+			}
+		};
+		WindowManager.getInstance().registerWindow(this);
+	}
+
+	public void init(List<Song> songList, boolean startPlay,
+			SongSelectionProfile profile) {
+		this.selProfile = profile;
 		setSongs(songList);
 		layoutControls();
 		JMenuBar menu = new JMenuBar();
@@ -84,6 +125,16 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		this.setJMenuBar(menu);
 		currentSongIndex = 0;
 		played = new HashSet<Song>();
+
+		manuallySkipped = new ArrayList<Song>();
+		manuallyAdded = new ArrayList<Song>();
+		if (profile != null) {
+			Iterator<Song> it = profile.getRelPosMap().keySet().iterator();
+			while (it.hasNext()) {
+				manuallyAdded.add(it.next());
+			}
+		}
+
 		if (startPlay) {
 			playerPanel.setState(PlayerPanel.PlayState.PLAYING);
 			play(0);
@@ -104,14 +155,90 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		this.setContentPane(panel);
 		this.setVisible(true);
 		this.pack();
-		this.setSize(300, 400);
+		this.setSize(337, 400);
 
 	}
 
 	private void playNextSong() {
-		final Song song = getNextSong();
-		currentSongIndex = list.indexOf(song);
-		play(0);
+		Song song = getNextSong();
+		if (song == null) {
+			if (requiresProfileUpdateForInfiniPlay()) {
+				selProfile = generateNewProfile();
+				List<Song> newSongList;
+				try {
+					newSongList = StrategyFactory.getPlaylistByStrategy(
+							selProfile.getStrategy(), selProfile,
+							selProfile.getStrategyConfig(), false, false, list);
+					for (Song s : newSongList) {
+						model.addSong(s.getFile(), model.getList().size());
+					}
+					song = getNextSong();
+					currentSongIndex = list.indexOf(song);
+					play(0);
+				} catch (Exception e) {
+					logger.error("Error creating playlist", e);
+				}
+			}
+		} else {
+			currentSongIndex = list.indexOf(song);
+			play(0);
+		}
+	}
+
+	private SongSelectionProfile generateNewProfile() {
+		SongSelectionProfile profile = new SongSelectionProfile();
+
+		profile.setSize(INFINI_PLAY_GENLIST_SIZE);
+		profile.setSizeType(SongSelectionProfile.SIZE_TYPE_LENGTH);
+		if (selProfile == null) {
+			selProfile = new SongSelectionProfile();
+			PlaylistGenerator strategy = new RandomStrategy();
+			selProfile.setStrategy(strategy);
+			selProfile.setStrategyConfig(StrategyFactory
+					.getDefaultOrLastSettings(strategy));
+		}
+		profile.setStrategy(selProfile.getStrategy());
+		profile.setStrategyConfig(selProfile.getStrategyConfig());
+		List<Song> baseList = list.subList(
+				Math.max(0, list.size() - INFINI_PLAY_LAST_N_TOCHECK),
+				list.size());
+		List<Song> partials = new ArrayList<Song>(INFINI_PLAY_GENLIST_SIZE);
+		for (int i = 0; i < INFINI_PLAY_GENLIST_SIZE; i++) {
+			partials.add(null); // nullfill
+		}
+		int addedCnt = 0;
+		for (int i = 0; i < baseList.size(); i++) {
+			if (manuallyAdded.contains(baseList.get(i))) { // add the manually
+															// addeds
+				partials.set(i, baseList.get(i));
+				addedCnt++;
+			}
+		}
+		int tries = 0;
+		int random;
+		while (addedCnt < INFINI_PLAY_GENLIST_SIZE / 2
+				&& tries < INFINI_PLAY_GENLIST_SIZE) {
+			// need to add more random chosens from the last N
+			tries++;
+			random = (int) (Math.random() * baseList.size());
+			if (partials.contains(baseList.get(random))) {
+				continue;
+			} else {
+				partials.set(random, baseList.get(random));
+				addedCnt++;
+			}
+		}
+		profile.setRelPosMap(partials);
+		return profile;
+	}
+
+	private boolean requiresProfileUpdateForInfiniPlay() {
+		if (!playerPanel.getIsInfiniPlay())
+			return false;
+		// TODO Auto-generated method stub
+		if (currentSongIndex + 1 >= list.size())
+			return true;
+		return false;
 	}
 
 	private Song getNextSong() {
@@ -130,9 +257,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				}
 			}
 		} else {
-			currentSongIndex++;
-			if (list.size() <= currentSongIndex)
+			if (list.size() <= currentSongIndex + 1)
 				return null;
+
+			currentSongIndex++;
 			return list.get(currentSongIndex);
 		}
 	}
@@ -210,24 +338,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		playerPanel.setPausedOnFrame(playFrom);
 		played.add(song);
 		table.setRowSelectionInterval(index, index);
-		playerPanel.setCurrentSong(song);
-		SongPlayer.getInstance().play(song, playFrom, new PlaybackListener() {
-
-			@Override
-			public void getNotification(PlayEvent event) {
-				if (event.getEventType() == PlayEvent.EventType.SONG_ENDED) {
-					// previous song has ended;
-					playNextSong();
-				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
-					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
-							"Error playing song: " + song.getName());
-				} else if (event.getEventType() == PlayEvent.EventType.SONG_PAUSED) {
-					playerPanel.setPausedOnFrame(event.getFrame());
-				} else if (event.getEventType() == PlayEvent.EventType.SONG_STOPPED) {
-					playerPanel.setPausedOnFrame(0);
-				}
-			}
-		});
+		playerPanel.setCurrentSong(song, playFrom);
+		SongPlayer.getInstance().play(song, playFrom, playbackListener);
 
 	}
 
@@ -244,6 +356,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void next() {
+		manuallySkipped.add(list.get(currentSongIndex));
 		playNextSong();
 	}
 
@@ -258,7 +371,6 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void setInfinyPlay(boolean isInfini) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -271,6 +383,35 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void setRandomize(boolean isRandom) {
 		isRandomized = isRandom;
+	}
+
+	public void addSongNext(Song song) {
+		int pos = 0;
+		if (list.isEmpty()) {
+			pos = 0;
+		} else {
+			pos = currentSongIndex + 1;
+		}
+		try {
+			model.addSong(song.getFile(), pos);
+			manuallyAdded.add(song);
+		} catch (SongNotIndexedException e) {
+			// never reaches since playlistpreview window doesn't expect
+			// file to be indexed
+			logger.error("Song add exception in playlist preview window", e);
+		}
+		return;
+	}
+
+	public void enqueueSong(Song song) {
+		try {
+			model.addSong(song.getFile(), model.getList().size());
+			manuallyAdded.add(song);
+		} catch (SongNotIndexedException e) {
+			// never reaches since playlistpreview window doesn't expect
+			// file to be indexed
+			logger.error("Song add exception in playlist preview window", e);
+		}
 	}
 
 	class PlaylistModel extends DefaultTableModel implements Reorderable,
@@ -354,7 +495,11 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				throws SongNotIndexedException {
 			Song song = new Song();
 			song.setFile(file);
-			list.add(position, song);
+			if (position >= list.size()) {
+				list.add(song);
+			} else {
+				list.add(position, song);
+			}
 			fireTableDataChanged();
 		}
 

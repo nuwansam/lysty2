@@ -54,7 +54,7 @@ public class Mp3Player extends AbstractPlayer {
 									: forcePaused ? PlayEvent.EventType.SONG_PAUSED
 											: PlayEvent.EventType.SONG_ENDED);
 					playEvent.setFrame(playFrom
-							+ (36 * event.getFrame() / 1000));
+							+ (44 * event.getFrame() / 1000));
 
 					playbackListener.getNotification(playEvent);
 				}

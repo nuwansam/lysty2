@@ -18,6 +18,7 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DropMode;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -27,7 +28,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
@@ -63,6 +63,7 @@ public class PlaylistProfileWindow extends LFrame {
 	private JComboBox<String> cmbSizeType;
 	private JComboBox cmbStrategy;
 	private StrategySettingsWindow strategySettingsWindow;
+	private JCheckBox chkIsCircular;
 
 	private StrategyConfiguration currentStrategySettings;
 	private PlaylistGenerator currentStrategy;
@@ -71,8 +72,23 @@ public class PlaylistProfileWindow extends LFrame {
 	private JButton btnSettings;
 	private Logger logger = Logger.getLogger(PlaylistProfileWindow.class);
 
-	public PlaylistProfileWindow(String title) {
+	private static PlaylistProfileWindow self = null;
+
+	public static PlaylistProfileWindow getInstance() {
+		if (self == null) {
+			self = new PlaylistProfileWindow("Lysty");
+		}
+		return self;
+	}
+
+	private PlaylistProfileWindow(String title) {
 		super(title);
+		WindowManager.getInstance().registerWindow(this);
+		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		init();
+	}
+
+	public void init() {
 		createUI();
 		createControlPanel();
 		table = new JTable();
@@ -141,7 +157,6 @@ public class PlaylistProfileWindow extends LFrame {
 		// Show the frame
 		this.setVisible(true);
 		this.setResizable(false);
-		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}
 
 	/**
@@ -191,6 +206,10 @@ public class PlaylistProfileWindow extends LFrame {
 
 		btnSettings = new JButton("Settings...");
 		pnlStrategy.add(btnSettings, "cell 1 0");
+
+		chkIsCircular = new JCheckBox("Circ");
+		chkIsCircular.setSelected(true);
+		pnlStrategy.add(chkIsCircular, "cell 2 0");
 
 		scroller = new JScrollPane();
 		scroller.setBounds(10, 92, 300, 380);
@@ -279,7 +298,9 @@ public class PlaylistProfileWindow extends LFrame {
 
 	protected void onStrategySelectionChange(PlaylistGenerator newStrategy) {
 		PlaylistProfileWindow.this.currentStrategy = newStrategy;
-		PlaylistProfileWindow.this.currentStrategySettings = null;
+		PlaylistProfileWindow.this.currentStrategySettings = StrategyFactory
+				.getDefaultOrLastSettings(newStrategy);
+
 	}
 
 	protected void showSettingsFrame() {
@@ -387,12 +408,14 @@ public class PlaylistProfileWindow extends LFrame {
 				.getDefaultOrLastSettings(currentStrategy)
 				: currentStrategySettings;
 		List<Song> list = StrategyFactory.getPlaylistByStrategy(
-				currentStrategy, playlistModel.getSelProfile(), config);
+				currentStrategy, getSelectionProfile(), config,
+				chkIsCircular.isSelected(), true, null);
 		showPlaylist(list, autoPlay);
 	}
 
 	private void showPlaylist(List<Song> list, boolean autoPlay) {
-		PlaylistPreviewWindow win = new PlaylistPreviewWindow(list, autoPlay);
+		PlaylistPreviewWindow win = PlaylistPreviewWindow.getInstance();
+		win.init(list, autoPlay, getSelectionProfile());
 	}
 
 	protected void showIndexDialog() {
@@ -434,6 +457,10 @@ public class PlaylistProfileWindow extends LFrame {
 			return;
 		}
 		File file = chooser.getSelectedFile();
+		loadSelProfile(file);
+	}
+
+	public void loadSelProfile(File file) {
 		SongSelectionProfile selProfile = FileUtils.loadSelectionProfile(file);
 		playlistModel.loadFromSelProfile(selProfile);
 	}
@@ -448,6 +475,13 @@ public class PlaylistProfileWindow extends LFrame {
 		table.setModel(playlistModel);
 	}
 
+	public SongSelectionProfile getSelectionProfile() {
+		SongSelectionProfile profile = playlistModel.getSelProfile();
+		profile.setStrategy(currentStrategy);
+		profile.setStrategyConfig(currentStrategySettings);
+		return profile;
+	}
+
 	/**
 	 * Save the selection profile
 	 * 
@@ -455,7 +489,7 @@ public class PlaylistProfileWindow extends LFrame {
 	 */
 	protected boolean saveSelProfile() {
 		// TODO Auto-generated method stub
-		SongSelectionProfile selProfile = playlistModel.getSelProfile();
+		SongSelectionProfile selProfile = getSelectionProfile();
 		if (selProfile.getFile() == null) {
 			// no file set. SaveAs...
 			JFileChooser chooser = new JFileChooser();

@@ -28,8 +28,11 @@ public interface PlaylistGenerator extends Plugin {
 	 * @return completed playlist
 	 */
 	public List<Song> getPlaylist(SongSelectionProfile profile,
-			StrategyConfiguration config); // The attribute map will contain
-											//
+			StrategyConfiguration config, boolean isCircular,
+			boolean mustIncludeSeeds, List<Song> blacklist); // The attribute
+																// map will
+																// contain
+	//
 
 	/**
 	 * Get the display name of the strategy

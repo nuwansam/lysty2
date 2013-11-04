@@ -12,9 +12,11 @@ import java.util.Map.Entry;
 import net.n3.nanoxml.IXMLElement;
 import net.n3.nanoxml.XMLElement;
 
+import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.XMLSerializable;
 import org.lysty.db.DBHandler;
 import org.lysty.exceptions.InvalidXMLException;
+import org.lysty.strategies.StrategyConfiguration;
 
 /**
  * Selection profile of songs
@@ -40,6 +42,38 @@ public class SongSelectionProfile implements XMLSerializable {
 	int sizeType;
 	File file; // save location
 	Map<Song, Integer> relPosMap; // relative position of each song in the list;
+	StrategyConfiguration strategyConfig;
+	PlaylistGenerator strategy;
+
+	/**
+	 * @return the strategyConfig
+	 */
+	public StrategyConfiguration getStrategyConfig() {
+		return strategyConfig;
+	}
+
+	/**
+	 * @param strategyConfig
+	 *            the strategyConfig to set
+	 */
+	public void setStrategyConfig(StrategyConfiguration strategyConfig) {
+		this.strategyConfig = strategyConfig;
+	}
+
+	/**
+	 * @return the strategy
+	 */
+	public PlaylistGenerator getStrategy() {
+		return strategy;
+	}
+
+	/**
+	 * @param strategy
+	 *            the strategy to set
+	 */
+	public void setStrategy(PlaylistGenerator strategy) {
+		this.strategy = strategy;
+	}
 
 	public SongSelectionProfile() {
 		relPosMap = new HashMap<Song, Integer>();
@@ -184,6 +218,14 @@ public class SongSelectionProfile implements XMLSerializable {
 			playlist.set(entry.getValue(), entry.getKey());
 		}
 		return playlist;
+	}
+
+	public void setRelPosMap(List<Song> partials) {
+		for (int i = 0; i < partials.size(); i++) {
+			if (partials.get(i) != null) {
+				relPosMap.put(partials.get(i), i);
+			}
+		}
 	}
 
 }

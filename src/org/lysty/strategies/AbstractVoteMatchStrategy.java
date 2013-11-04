@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.naming.ConfigurationException;
+
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import org.lysty.core.PlaylistGenerator;
@@ -20,16 +22,19 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 
 	@Override
 	public List<Song> getPlaylist(SongSelectionProfile profile,
-			StrategyConfiguration config) {
+			StrategyConfiguration config, boolean isCircular,
+			boolean mustIncludeSeeds, List<Song> blacklist) {
 		attributes = config.getAttributes();
 		readAttributes(attributes);
-		Map<Song, Map<Song, Integer>> votesMap = getVotesMap(profile
-				.getRelPosMap());
+		Map<Song, Map<Song, Integer>> votesMap = getVotesMap(
+				profile.getRelPosMap(), blacklist);
 
 		List<Song> playlist = profile.getPartialPlaylist();
+		List<Song> fPlaylist = new ArrayList<Song>();
 
 		Song prevSong = null;
 		Song nextSong = null;
+		Song firstSong = null;
 		Song cSong;
 		int distF = playlist.size();
 		int distB = 0;
@@ -37,6 +42,7 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 			cSong = playlist.get(i);
 			if (cSong != null) {
 				nextSong = cSong;
+				firstSong = cSong;
 				distF = i;
 				break;
 			}
@@ -66,18 +72,32 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 						break;
 					}
 				}
-				continue;
+				if (nextSong == null && isCircular) {
+					for (int j = 0; j <= i; j++) {
+						if (firstSong.equals(playlist.get(j))) {
+							nextSong = playlist.get(j);
+							distF = j + playlist.size() - i;
+							break;
+						}
+					}
+				}
+				if (mustIncludeSeeds) {
+					fPlaylist.add(cSong);
+					continue;
+				}
 			}
-			if (cSong == null) {
+			if (cSong == null || !mustIncludeSeeds) {
 				// has to fill with a song for this position
 				candidates = new HashMap<Song, Integer>();
 				if (prevSong != null) {
 					fillCandidates(candidates, votesMap.get(prevSong), distB
-							/ (distB + distF), alreadyIns);
+							+ distF == 0 ? 1 : distF / (distB + distF),
+							alreadyIns);
 				}
 				if (nextSong != null) {
-					fillCandidates(candidates, votesMap.get(nextSong), distF
-							/ (distB + distF), alreadyIns);
+					fillCandidates(candidates, votesMap.get(nextSong), distB
+							+ distF == 0 ? 1 : distB / (distB + distF),
+							alreadyIns);
 				}
 
 				totalVotes = 0;
@@ -89,16 +109,19 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 				rand = (int) (Math.random() * totalVotes);
 				selSong = getCandidateSong(candidates, rand);
 				alreadyIns.add(selSong);
-				playlist.set(i, selSong);
+				fPlaylist.add(selSong);
 			}
 		}
-		return playlist;
+		return fPlaylist;
 	}
 
 	protected abstract void readAttributes(Map<String, String> attributes);
 
 	private void fillCandidates(Map<Song, Integer> candidates,
 			Map<Song, Integer> votedSongs, float weight, List<Song> alreadyIns) {
+		if (votedSongs == null) {
+			System.out.println("NULL");
+		}
 		Iterator<Entry<Song, Integer>> it = votedSongs.entrySet().iterator();
 		Entry<Song, Integer> entry;
 		Integer cVotes;
@@ -114,7 +137,7 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 	}
 
 	private Map<Song, Map<Song, Integer>> getVotesMap(
-			Map<Song, Integer> relPosMap) {
+			Map<Song, Integer> relPosMap, List<Song> blacklist) {
 		Song song;
 		List<Song> allSongs = DBHandler.getInstance().getSongs(null);
 
@@ -122,6 +145,12 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 		while (it.hasNext()) {
 			song = it.next();
 			allSongs.remove(song);
+		}
+
+		if (blacklist != null) {
+			for (Song s : blacklist) {
+				allSongs.remove(s);
+			}
 		}
 
 		Map<Song, Map<Song, Integer>> votesMap = new HashMap<Song, Map<Song, Integer>>();

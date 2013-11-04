@@ -26,7 +26,11 @@ public class SongPlayer {
 
 	public void play(final Song song, int playFrom,
 			final PlaybackListener playbackListener) {
-		stop(); // stop the currently playing song
+		try {
+			stop(); // stop the currently playing song
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		player = PlayerManager.getInstance().getPlayer(song.getFileType());
 		player.setPlaybackListener(playbackListener);
 		Thread thread = new SongPlayThread(song, playFrom,

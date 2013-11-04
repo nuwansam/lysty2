@@ -35,4 +35,13 @@ public class Utils {
 		// TODO Auto-generated method stub
 		return !(artist1 == null || artist1.trim().isEmpty());
 	}
+
+	public static String getArgsLogString(String[] args) {
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < args.length; i++) {
+			builder.append("arg ").append(i).append(" ").append(args[i])
+					.append(" ");
+		}
+		return builder.toString();
+	}
 }

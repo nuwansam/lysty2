@@ -21,7 +21,7 @@ public class Song {
 	Map<String, String> attributes = new HashMap<String, String>();
 
 	public Song(File file) {
-		this.file = file;
+		setFile(file);
 	}
 
 	public Song() {

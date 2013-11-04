@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import net.n3.nanoxml.IXMLElement;
 import net.n3.nanoxml.IXMLParser;
@@ -19,6 +20,7 @@ import net.n3.nanoxml.XMLWriter;
 import org.apache.log4j.Logger;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
+import org.lysty.players.PlayerManager;
 
 import christophedelory.content.Content;
 import christophedelory.playlist.Media;
@@ -30,8 +32,8 @@ import christophedelory.playlist.SpecificPlaylistProvider;
 
 public class FileUtils {
 
-	protected static final String SEL_PROFILE_EXT = ".ssp";
 	private static final String FILE_TYPE_UNKNOWN = "FILE TYPE UNKNOWN";
+	private static final String PARTIAL_PLAYLIST_EXT = "pp";
 
 	public static javax.swing.filechooser.FileFilter selProfileFileFilter = new javax.swing.filechooser.FileFilter() {
 
@@ -43,7 +45,7 @@ public class FileUtils {
 
 		@Override
 		public boolean accept(File file) {
-			return file.getName().endsWith(SEL_PROFILE_EXT);
+			return file.getName().endsWith("." + PARTIAL_PLAYLIST_EXT);
 		}
 	};
 	private static Logger logger = Logger.getLogger(FileUtils.class);
@@ -152,5 +154,17 @@ public class FileUtils {
 		XMLWriter writer = new XMLWriter(fWriter);
 		writer.write(xml);
 		fWriter.close();
+	}
+
+	public static boolean isPartialPlaylistFile(File file) {
+		return PARTIAL_PLAYLIST_EXT.equalsIgnoreCase(getFileType(file));
+	}
+
+	public static boolean isSupportedSongFile(File file) {
+		Set<String> set = PlayerManager.getInstance().getSupportedFormats();
+		if (set.contains(getFileType(file).toLowerCase())) {
+			return true;
+		}
+		return false;
 	}
 }
