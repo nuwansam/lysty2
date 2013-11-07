@@ -18,7 +18,7 @@ import org.lysty.core.SongIndexer;
 import org.lysty.core.UpdateListener;
 import org.lysty.exceptions.FeatureExtractionException;
 
-public class IndexProgressWindow extends LFrame implements UpdateListener {
+public class ProgressWindow extends LFrame implements UpdateListener {
 
 	private static final String TEXT_OK = "Ok";
 	private static final String TEXT_CANCEL = "Cancel";
@@ -28,9 +28,13 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 	JList lstErrors;
 	JScrollPane scroller;
 	private DefaultListModel<String> errorListModel;
+	private int errorCount = 0;
+	private long successCount;
+	private boolean isCancelEnabled;
 
-	public IndexProgressWindow() {
-		super("Indexing...");
+	public ProgressWindow(String title, boolean isCancelEnabled) {
+		super(title);
+		this.isCancelEnabled = isCancelEnabled;
 		createUI();
 		layoutUI();
 	}
@@ -44,6 +48,9 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 		panel.add(progressBar, "span");
 		panel.add(scroller, "south");
 
+		if (!isCancelEnabled) {
+			btnCancel.setEnabled(false);
+		}
 		this.setContentPane(panel);
 		this.pack();
 		this.setVisible(true);
@@ -59,7 +66,7 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (TEXT_OK.equalsIgnoreCase(btnCancel.getText())) {
-					IndexProgressWindow.this.dispose();
+					ProgressWindow.this.dispose();
 				} else if (TEXT_CANCEL.equalsIgnoreCase(btnCancel.getText())) {
 					SongIndexer.cancel();
 					btnCancel.setText(TEXT_OK);
@@ -69,6 +76,7 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 		});
 		progressBar = new JProgressBar();
 		progressBar.setPreferredSize(new Dimension(400, 20));
+		progressBar.setStringPainted(true);
 		lstErrors = new JList();
 		errorListModel = new DefaultListModel<String>();
 		lstErrors.setModel(errorListModel);
@@ -84,13 +92,13 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 	@Override
 	public void notifyUpdate(long currentProgress, String customMessage) {
 		progressBar.setValue((int) currentProgress);
-		progressBar.setStringPainted(true);
 		lblMessage.setText(customMessage);
 	}
 
 	@Override
 	public void notifyError(Exception e) {
 		if (e instanceof FeatureExtractionException) {
+			errorCount++;
 			FeatureExtractionException e1 = (FeatureExtractionException) e;
 			errorListModel.addElement("Error indexing: "
 					+ e1.getFile().getAbsolutePath());
@@ -99,9 +107,16 @@ public class IndexProgressWindow extends LFrame implements UpdateListener {
 
 	@Override
 	public void notifyComplete() {
-		lblMessage.setText("Indexing Complete");
+		lblMessage.setText("Indexing Complete. " + successCount
+				+ " files indexed out of " + (successCount + errorCount));
 		progressBar.setValue(progressBar.getMaximum());
 		btnCancel.setText(TEXT_OK);
 	}
 
+	@Override
+	public void notifyCurrentSuccessCount(long successCount) {
+		progressBar.setString("Successfully indexed: " + successCount
+				+ " files");
+		this.successCount = successCount;
+	}
 }

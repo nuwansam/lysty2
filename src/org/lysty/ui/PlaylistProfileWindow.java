@@ -378,7 +378,7 @@ public class PlaylistProfileWindow extends LFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				showIndexDialog();
+				Commands.showIndexDialog(PlaylistProfileWindow.this);
 			}
 		});
 		mnuTools.add(mnuToolsIndex);
@@ -416,11 +416,6 @@ public class PlaylistProfileWindow extends LFrame {
 	private void showPlaylist(List<Song> list, boolean autoPlay) {
 		PlaylistPreviewWindow win = PlaylistPreviewWindow.getInstance();
 		win.init(list, autoPlay, getSelectionProfile());
-	}
-
-	protected void showIndexDialog() {
-		IndexerWindow.getInstance().setVisible(true);
-		IndexerWindow.getInstance().setLocationRelativeTo(this);
 	}
 
 	protected void exit() {

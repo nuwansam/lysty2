@@ -14,6 +14,7 @@ import org.lysty.dao.Song;
 import org.lysty.db.DBHandler;
 import org.lysty.exceptions.FeatureExtractionException;
 import org.lysty.extractors.ExtractSequencer;
+import org.lysty.extractors.MetaTagExtractor;
 import org.tritonus.share.TNotifier.NotifyEntry;
 
 public class SongIndexer {
@@ -120,6 +121,7 @@ public class SongIndexer {
 		}
 		updater.setSize(songList.size());
 		runExtractor(updater);
+		System.out.println("No attrib song count: " + MetaTagExtractor.cnt);
 	}
 
 	private static void init() {
@@ -140,19 +142,23 @@ public class SongIndexer {
 	private static List<Song> runExtractor(UpdateListener updater) {
 		List<Song> failedList = new ArrayList<Song>();
 		int indexUpdateChunk = (songList.size() / INDEX_UPDATE_PERCENTAGE) + 1;
+		int success = 0;
 
 		for (int i = 0; i < songList.size(); i++) {
 			try {
 				if (isCancelled)
 					return null;
 				extractFeatures(songList.get(i));
+				success++;
 			} catch (FeatureExtractionException e) {
 				failedList.add(songList.get(i));
 				updater.notifyError(e);
 			}
-			if (i % indexUpdateChunk == 0)
+			if (i % indexUpdateChunk == 0) {
 				updater.notifyUpdate(i, "Indexing: "
 						+ songList.get(i).getFile().getParent());
+				updater.notifyCurrentSuccessCount(success);
+			}
 		}
 		if (!songList.isEmpty()) { // update the last folder indexed's timestamp
 			currentIndexingFolder = songList.get(songList.size() - 1).getFile()

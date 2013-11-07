@@ -30,4 +30,6 @@ public interface DBMapper {
 	Integer getLastDBScriptNum();
 
 	void setLastDBScriptNum(int last);
+
+	void setAttribute(long songId, String feature, String newValue);
 }

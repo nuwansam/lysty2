@@ -43,7 +43,7 @@ import org.lysty.util.FileUtils;
 
 public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
-	private static final int INFINI_PLAY_GENLIST_SIZE = 8;
+	private static final int INFINI_PLAY_GENLIST_SIZE = 5;
 	private static final int INFINI_PLAY_LAST_N_TOCHECK = 8;
 	private List<Song> list;
 	private PlaylistModel model;
@@ -120,9 +120,43 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			}
 		});
 
+		JMenu mnuTools = new JMenu("Tools");
+		JMenuItem mnuEditMetaData = new JMenuItem(new AbstractAction(
+				"Edit MetaData") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MetaDataEditor.getInstance().createUI();
+				MetaDataEditor.getInstance().setVisible(true);
+			}
+		});
+
+		JMenuItem mnuPPEdit = new JMenuItem(new AbstractAction(
+				"Open Partial Playlist Editor") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PlaylistProfileWindow.getInstance().setVisible(true);
+			}
+		});
+
+		JMenuItem mnuToolsIndex = new JMenuItem(new AbstractAction("Index...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Commands.showIndexDialog(PlaylistPreviewWindow.this);
+			}
+		});
+
+		mnuTools.add(mnuEditMetaData);
+		mnuTools.add(mnuPPEdit);
+		mnuTools.add(mnuToolsIndex);
+
 		mnuFile.add(mnuFileSave);
 		menu.add(mnuFile);
+		menu.add(mnuTools);
 		this.setJMenuBar(menu);
+
 		currentSongIndex = 0;
 		played = new HashSet<Song>();
 
@@ -224,7 +258,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			if (partials.contains(baseList.get(random))) {
 				continue;
 			} else {
-				partials.set(random, baseList.get(random));
+				partials.set(Math.min(random, partials.size() - 1),
+						baseList.get(random));
 				addedCnt++;
 			}
 		}

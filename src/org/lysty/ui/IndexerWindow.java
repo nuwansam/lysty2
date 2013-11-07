@@ -134,7 +134,8 @@ public class IndexerWindow extends LFrame {
 
 			@Override
 			public void run() {
-				IndexProgressWindow indexProgressWindow = new IndexProgressWindow();
+				ProgressWindow indexProgressWindow = new ProgressWindow(
+						"Indexing", true);
 				indexProgressWindow.setLocationRelativeTo(IndexerWindow.this);
 				SongIndexer.index(files, Integer.parseInt(txtDepth.getText()),
 						chkIsIncremental.isSelected(), indexProgressWindow);

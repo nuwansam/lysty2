@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.ProgressMonitor;
+
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -24,6 +26,7 @@ import org.h2.tools.RunScript;
 import org.lysty.core.PropertyManager;
 import org.lysty.dao.Song;
 import org.lysty.extractors.FeatureExtractor;
+import org.lysty.ui.Modification;
 
 public class DBHandler {
 
@@ -131,6 +134,8 @@ public class DBHandler {
 	// DB Calls
 
 	public long insertSong(Song song) {
+		if (song.getFile().isDirectory())
+			return -1;
 		SqlSession session = DBHandler.sqlSessionFactory.openSession();
 		Long id = INSERTION_FAIL_ID;
 		try {
@@ -349,5 +354,71 @@ public class DBHandler {
 			session.close();
 		}
 		return null;
+	}
+
+	public void applyModifications(List<Modification> changes,
+			ProgressMonitor listener) {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		Long timestamp = null;
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			int currentProgress = 0;
+			for (Modification change : changes) {
+				currentProgress++;
+				listener.setProgress(currentProgress);
+				try {
+					if (change.getFeature() == null) {
+						// song addition
+						insertSong(change.getSong());
+						logger.info("Inserted song: "
+								+ change.getSong().getFile());
+					} else {
+						DBHandler.getInstance().setAttribute(change.getSong(),
+								change.getFeature(), change.getNewValue());
+					}
+				} catch (Exception e) {
+					logger.error(
+							"Error applying change: set " + change.getSong()
+									+ " " + change.getFeature() + " to "
+									+ change.getNewValue(), e);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+	}
+
+	private void setAttribute(Song song, String feature, String newValue) {
+		if (song.getFile().isDirectory())
+			return;
+
+		if (song.getId() == 0) {
+			// the song was not in the db at the time of setting the attribute
+			// it is assumed that the song is inserted before setting the
+			// attribute
+			Song songInDb = getSong(song.getFile());
+			if (songInDb == null) {
+				// ideally should not reach. coded for safety
+				insertSong(song);
+				songInDb = getSong(song.getFile());
+			}
+			song = songInDb;
+		}
+
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		Long timestamp = null;
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			mapper.setAttribute(song.getId(), feature, newValue);
+			logger.info("set " + feature + " of " + song.getFile().getName()
+					+ " to " + newValue);
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+
 	}
 }

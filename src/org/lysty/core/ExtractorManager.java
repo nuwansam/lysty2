@@ -87,4 +87,12 @@ public class ExtractorManager {
 		return set.toArray(new String[set.size()]);
 	}
 
+	public static List<String> getSupportedFeatures() {
+		List<String> list = new ArrayList<String>();
+		for (FeatureExtractor extractor : extractors) {
+			list.addAll(extractor.getSupportedAttributes());
+		}
+		return list;
+	}
+
 }

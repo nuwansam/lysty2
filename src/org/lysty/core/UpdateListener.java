@@ -18,6 +18,8 @@ public interface UpdateListener {
 
 	public void notifyError(Exception e);
 
+	public void notifyCurrentSuccessCount(long successCount);
+
 	public void notifyComplete();
 
 }

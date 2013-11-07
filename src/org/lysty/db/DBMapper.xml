@@ -12,7 +12,8 @@
 		select attribute,value from attribs where songid=#{id};
 	</select>
 
-	<select id="getLastDBScriptNum" parameterType="Integer" resultType="Integer">
+	<select id="getLastDBScriptNum" parameterType="Integer"
+		resultType="Integer">
 		select value from
 		config
 		where name='last_run_script';
@@ -31,6 +32,11 @@
 	<select id="insertAttribute" parameterType="Map">
 		insert into attribs
 		(songid,attribute,value) values (#{0},#{1},#{2});
+	</select>
+
+	<select id="setAttribute" parameterType="Map">
+		merge into attribs
+		(songid,attribute,value) key(songid,attribute) values (#{0},#{1},#{2});
 	</select>
 
 	<select id="setFolderIndexTimestamp" parameterType="Map">

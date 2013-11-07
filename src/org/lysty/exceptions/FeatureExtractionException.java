@@ -5,6 +5,7 @@ import java.io.File;
 public class FeatureExtractionException extends Exception {
 
 	File file;
+	private Exception exception;
 
 	/**
 	 * @return the file
@@ -19,6 +20,10 @@ public class FeatureExtractionException extends Exception {
 	 */
 	public void setFile(File file) {
 		this.file = file;
+	}
+
+	public void setExcepion(Exception e) {
+		this.exception = e;
 	}
 
 }

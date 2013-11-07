@@ -79,11 +79,16 @@ public class Mp3Player extends AbstractPlayer {
 
 	@Override
 	public void stop() {
-		forceStopped = true;
-		forcePaused = false;
-		if (player != null)
-			player.stop();
-		player = null;
+		try {
+			forceStopped = true;
+			forcePaused = false;
+			if (player != null)
+				player.stop();
+			player = null;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override

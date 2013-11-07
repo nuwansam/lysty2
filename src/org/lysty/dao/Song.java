@@ -144,4 +144,8 @@ public class Song {
 		return attributes.get(attrib);
 	}
 
+	public void setAttribute(String feature, String value) {
+		attributes.put(feature, value);
+	}
+
 }

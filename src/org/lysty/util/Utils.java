@@ -1,8 +1,17 @@
 package org.lysty.util;
 
+import java.awt.Image;
+import java.io.File;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import org.apache.log4j.Logger;
+
 public class Utils {
 
 	public static final int EDIT_DISTANCE_THRESHOLD = 5;
+	public static Logger logger = Logger.getLogger(Utils.class);
 
 	public static int editDistance(String s, String t) {
 		int m = s.length();
@@ -43,5 +52,16 @@ public class Utils {
 					.append(" ");
 		}
 		return builder.toString();
+	}
+
+	public static Icon getIcon(String iconName) {
+		try {
+			ImageIcon icon = new ImageIcon(System.getProperty("user.dir")
+					+ "/resources/icons/" + iconName);
+			return icon;
+		} catch (Exception e) {
+			logger.error("Error loading icon for: " + iconName, e);
+		}
+		return null;
 	}
 }

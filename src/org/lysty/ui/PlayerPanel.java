@@ -1,5 +1,6 @@
 package org.lysty.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
+import javax.swing.border.MatteBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -26,9 +28,11 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.lysty.dao.Song;
 import org.lysty.extractors.MetaTagExtractor;
+import org.lysty.util.Utils;
 
 public class PlayerPanel extends JPanel {
 
+	private static final int DEFAULT_FRAMES_PER_SECS = 38;
 	private JProgressBar progress;
 	private JToggleButton btnStartPause;
 	private JButton btnStop;
@@ -58,15 +62,15 @@ public class PlayerPanel extends JPanel {
 		}
 		playState = state;
 		if (state == PlayState.PLAYING) {
-			btnStartPause.setText("Pause");
+			btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PAUSE_ICON));
 			btnStartPause.setSelected(true);
 		} else if (state == PlayState.PAUSED) {
-			btnStartPause.setText("Start");
+			btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PLAY_ICON));
 			btnStartPause.setSelected(false);
 			if (timer != null)
 				timer.stop();
 		} else if (state == PlayState.STOPPED) {
-			btnStartPause.setText("Start");
+			btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PLAY_ICON));
 			btnStartPause.setSelected(false);
 			if (timer != null)
 				timer.stop();
@@ -91,7 +95,7 @@ public class PlayerPanel extends JPanel {
 		this.add(progress, "span");
 		this.add(btnStop);
 		this.add(btnStartPause);
-		this.add(btnPrev);
+		this.add(btnPrev, "align right");
 		this.add(btnNext, "wrap");
 		this.add(btnInfin);
 		this.add(btnRandom);
@@ -143,11 +147,16 @@ public class PlayerPanel extends JPanel {
 				int tW = progress.getWidth();
 				int cW = e.getX();
 				int newProgress = progress.getMaximum() * cW / tW;
-				listener.play((int) Math.ceil(newProgress * 41));
+				listener.play((int) Math.ceil(newProgress
+						* DEFAULT_FRAMES_PER_SECS));
 				progress.setValue(newProgress);
 			}
 		});
-		btnStartPause = new JToggleButton("Start");
+
+		progress.setBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray));
+
+		btnStartPause = new JToggleButton();
+		btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PLAY_ICON));
 		btnStartPause.addActionListener(new ActionListener() {
 
 			@Override
@@ -163,7 +172,7 @@ public class PlayerPanel extends JPanel {
 				}
 			}
 		});
-		btnStop = new JButton(new AbstractAction("Stop") {
+		btnStop = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -172,7 +181,8 @@ public class PlayerPanel extends JPanel {
 				listener.stop();
 			}
 		});
-		btnNext = new JButton(new AbstractAction("Next") {
+		btnStop.setIcon(Utils.getIcon(ResourceConstants.STOP_ICON));
+		btnNext = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -181,7 +191,8 @@ public class PlayerPanel extends JPanel {
 				listener.next();
 			}
 		});
-		btnPrev = new JButton(new AbstractAction("Prev") {
+		btnNext.setIcon(Utils.getIcon(ResourceConstants.NEXT_ICON));
+		btnPrev = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -190,8 +201,10 @@ public class PlayerPanel extends JPanel {
 				listener.prev();
 			}
 		});
+		btnPrev.setIcon(Utils.getIcon(ResourceConstants.PREV_ICON));
 
-		btnInfin = new JToggleButton("Infini Play");
+		btnInfin = new JToggleButton(
+				Utils.getIcon(ResourceConstants.INFINI_ICON));
 		btnInfin.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -216,15 +229,14 @@ public class PlayerPanel extends JPanel {
 				popup.show(btnSleep, 0, 0);
 			}
 		});
-		btnRandom = new JToggleButton(new AbstractAction("Non Random") {
+		btnRandom = new JToggleButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				btnRandom.setText(btnRandom.isSelected() ? "Random"
-						: "Non Random");
 				listener.setRandomize(btnRandom.isSelected());
 			}
 		});
+		btnRandom.setIcon(Utils.getIcon(ResourceConstants.SHUFFLE_ICON));
 		btnRandom.setSelected(false);
 
 	}

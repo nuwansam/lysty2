@@ -12,6 +12,7 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.lysty.dao.Song;
 import org.lysty.exceptions.FeatureExtractionException;
+import org.lysty.util.Utils;
 
 @PluginImplementation
 public class MetaTagExtractor implements FeatureExtractor {
@@ -34,6 +35,16 @@ public class MetaTagExtractor implements FeatureExtractor {
 
 	private static final String FEATURE_BPM = "bpm";
 
+	private static final String FEATURE_KEY = "key";
+
+	private static final String FEATURE_LYRICIST = "lyricist";
+
+	private static final String FEATURE_MOOD = "mood";
+
+	private static final String FEATURE_ISCOMPILATION = "is_compilation";
+
+	public static int cnt = 0;
+
 	@Override
 	public Song extract(Song song) throws FeatureExtractionException {
 		File file = song.getFile();
@@ -43,18 +54,133 @@ public class MetaTagExtractor implements FeatureExtractor {
 			int duration = audioFile.getAudioHeader().getTrackLength();
 			song.addAttribute(FEATURE_DURATION, duration + "");
 			Tag tag = audioFile.getTag();
-			song.addAttribute(FEATURE_ALBUM, tag.getFirst(FieldKey.ALBUM));
-			song.addAttribute(FEATURE_RELEASEDATE, tag.getFirst(FieldKey.YEAR));
-			song.addAttribute(FEATURE_ARTIST, tag.getFirst(FieldKey.ARTIST));
-			song.addAttribute(FEATURE_TITLE, tag.getFirst(FieldKey.TITLE));
-			song.addAttribute(FEATURE_GENRE, tag.getFirst(FieldKey.GENRE));
-			song.addAttribute(FEATURE_COMPOSER, tag.getFirst(FieldKey.COMPOSER));
-			song.addAttribute(FEATURE_LANGUAGE, tag.getFirst(FieldKey.LANGUAGE));
-			song.addAttribute(FEATURE_BPM, tag.getFirst(FieldKey.BPM));
 
+			if (tag == null) {
+				System.out.println("No tags for: " + file.getName());
+				cnt++;
+			}
+			if (tag != null) {
+
+				String attrib;
+				try {
+					attrib = tag.getFirst(FieldKey.ALBUM);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_ALBUM, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.YEAR);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_RELEASEDATE, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.ARTIST);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_ARTIST, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.TITLE);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_TITLE, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.GENRE);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_GENRE, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.COMPOSER);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_COMPOSER, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.LANGUAGE);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_LANGUAGE, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.BPM);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_BPM, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.KEY);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_KEY, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.LYRICIST);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_LYRICIST, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.MOOD);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_MOOD, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				try {
+					attrib = tag.getFirst(FieldKey.IS_COMPILATION);
+					if (Utils.stringNotNullOrEmpty(attrib))
+						song.addAttribute(FEATURE_ISCOMPILATION, attrib);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			if (!song.getAttributes().keySet().iterator().hasNext()) {
+				System.out.println("No attributes extracted for: "
+						+ song.getFile().getName());
+				cnt++;
+			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			FeatureExtractionException e1 = new FeatureExtractionException();
 			e1.setFile(file);
+			e1.setExcepion(e);
 			throw e1;
 		}
 		return song;
@@ -71,6 +197,10 @@ public class MetaTagExtractor implements FeatureExtractor {
 		attribs.add(FEATURE_COMPOSER);
 		attribs.add(FEATURE_LANGUAGE);
 		attribs.add(FEATURE_BPM);
+		attribs.add(FEATURE_KEY);
+		attribs.add(FEATURE_LYRICIST);
+		attribs.add(FEATURE_MOOD);
+		attribs.add(FEATURE_ISCOMPILATION);
 		return attribs;
 	}
 
