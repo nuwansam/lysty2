@@ -35,8 +35,10 @@ import org.lysty.core.SongPlayer;
 import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
+import org.lysty.db.DBHandler;
 import org.lysty.players.PlayEvent;
 import org.lysty.players.PlaybackListener;
+import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.strategies.random.RandomStrategy;
 import org.lysty.ui.exception.SongNotIndexedException;
 import org.lysty.util.FileUtils;
@@ -69,7 +71,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	}
 
 	private PlaylistPreviewWindow() {
-		super("Preview Playlist");
+		super("Lysty Media Player");
 		init(new ArrayList<Song>(), false, null);
 		playbackListener = new PlaybackListener() {
 
@@ -148,10 +150,19 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			}
 		});
 
+		JMenuItem mnuToolsSettings = new JMenuItem(new AbstractAction(
+				"Settings") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				AppSettingsWindow.getInstance().setVisible(true);
+			}
+		});
+
 		mnuTools.add(mnuEditMetaData);
 		mnuTools.add(mnuPPEdit);
 		mnuTools.add(mnuToolsIndex);
-
+		mnuTools.add(mnuToolsSettings);
 		mnuFile.add(mnuFileSave);
 		menu.add(mnuFile);
 		menu.add(mnuTools);
@@ -207,8 +218,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 						model.addSong(s.getFile(), model.getList().size());
 					}
 					song = getNextSong();
-					currentSongIndex = list.indexOf(song);
-					play(0);
+					if (song != null) {
+						currentSongIndex = list.indexOf(song);
+						play(0);
+					}
 				} catch (Exception e) {
 					logger.error("Error creating playlist", e);
 				}
@@ -226,10 +239,16 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		profile.setSizeType(SongSelectionProfile.SIZE_TYPE_LENGTH);
 		if (selProfile == null) {
 			selProfile = new SongSelectionProfile();
-			PlaylistGenerator strategy = new RandomStrategy();
+			PlaylistGenerator strategy = playerPanel.getCurrentStrategy();
 			selProfile.setStrategy(strategy);
-			selProfile.setStrategyConfig(StrategyFactory
-					.getDefaultOrLastSettings(strategy));
+
+			StrategyConfiguration currentStrategySettings = playerPanel
+					.getCurrentStrategySettings();
+			if (currentStrategySettings == null)
+				currentStrategySettings = StrategyFactory
+						.getDefaultOrLastSettings(strategy);
+			selProfile.setStrategyConfig(currentStrategySettings);
+
 		}
 		profile.setStrategy(selProfile.getStrategy());
 		profile.setStrategyConfig(selProfile.getStrategyConfig());
@@ -528,8 +547,11 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		@Override
 		public void addSong(File file, int position)
 				throws SongNotIndexedException {
-			Song song = new Song();
-			song.setFile(file);
+			Song song = DBHandler.getInstance().getSong(file);
+			if (song == null) {
+				song = new Song();
+				song.setFile(file);
+			}
 			if (position >= list.size()) {
 				list.add(song);
 			} else {

@@ -4,20 +4,24 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
-import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import javax.swing.border.MatteBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -25,12 +29,14 @@ import net.miginfocom.swing.MigLayout;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.AudioHeader;
+import org.lysty.core.PlaylistGenerator;
+import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
 import org.lysty.extractors.MetaTagExtractor;
+import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.util.Utils;
 
-public class PlayerPanel extends JPanel {
+public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 	private static final int DEFAULT_FRAMES_PER_SECS = 38;
 	private JProgressBar progress;
@@ -50,6 +56,32 @@ public class PlayerPanel extends JPanel {
 	private PlayState playState;
 	private Timer timer;
 	private int pausedOnFrame;
+	private JComboBox cmbStrategy;
+	private JButton btnFillSettings;
+	private PlaylistGenerator currentStrategy;
+	private StrategyConfiguration currentStrategySettings;
+
+	/**
+	 * @return the currentStrategy
+	 */
+	public PlaylistGenerator getCurrentStrategy() {
+		return currentStrategy;
+	}
+
+	/**
+	 * @param currentStrategy
+	 *            the currentStrategy to set
+	 */
+	public void setCurrentStrategy(PlaylistGenerator currentStrategy) {
+		this.currentStrategy = currentStrategy;
+	}
+
+	/**
+	 * @return the currentStrategySettings
+	 */
+	public StrategyConfiguration getCurrentStrategySettings() {
+		return currentStrategySettings;
+	}
 
 	public PlayState getState() {
 		return playState;
@@ -90,16 +122,46 @@ public class PlayerPanel extends JPanel {
 	}
 
 	private void layoutControls() {
-		MigLayout layout = new MigLayout();
-		this.setLayout(layout);
-		this.add(progress, "span");
-		this.add(btnStop);
-		this.add(btnStartPause);
-		this.add(btnPrev, "align right");
-		this.add(btnNext, "wrap");
-		this.add(btnInfin);
-		this.add(btnRandom);
-		this.add(btnSleep, "align right");
+		setLayout(new MigLayout("", "[grow]", "[][grow]"));
+
+		JPanel panel = new JPanel();
+		panel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
+				TitledBorder.TOP, null, null));
+
+		add(panel, "cell 0 0,grow");
+		panel.setLayout(new MigLayout("", "[][][][][][]", "[][]"));
+
+		panel.add(progress, "span,growx");
+
+		panel.add(btnStartPause, "flowx");
+
+		panel.add(btnStop, "flowx");
+
+		panel.add(btnPrev, "flowx");
+
+		panel.add(btnNext, "flowx");
+
+		panel.add(btnRandom, "flowx,push,align right");
+		panel.add(btnSleep, "flowx,alignx right");
+
+		JPanel panel_1 = new JPanel();
+		panel_1.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
+				TitledBorder.TOP, null, null));
+		add(panel_1, "cell 0 1,grow");
+		panel_1.setLayout(new MigLayout("", "[][grow][]", "[]"));
+
+		panel_1.add(btnInfin, "cell 0 0,aligny top");
+
+		panel_1.add(cmbStrategy, "cell 1 0,growx");
+
+		panel_1.add(btnFillSettings, "cell 2 0");
+	}
+
+	protected void showSettingsFrame() {
+		PlaylistGenerator strategy = (PlaylistGenerator) cmbStrategy
+				.getSelectedItem();
+		StrategySettingsWindow.getInstance().createUi(strategy, this);
+		StrategySettingsWindow.getInstance().setListener(this);
 	}
 
 	public void setCurrentSong(Song song, int playFrom) {
@@ -140,8 +202,8 @@ public class PlayerPanel extends JPanel {
 
 	private void createUI() {
 		progress = new JProgressBar();
-		progress.setPreferredSize(new Dimension(300, 7));
-		progress.setMaximumSize(new Dimension(300, 7));
+		progress.setPreferredSize(new Dimension(300, 10));
+		progress.setMaximumSize(new Dimension(300, 10));
 		progress.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				int tW = progress.getWidth();
@@ -153,7 +215,7 @@ public class PlayerPanel extends JPanel {
 			}
 		});
 
-		progress.setBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray));
+		// progress.setBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray));
 
 		btnStartPause = new JToggleButton();
 		btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PLAY_ICON));
@@ -213,7 +275,7 @@ public class PlayerPanel extends JPanel {
 			}
 		});
 		btnInfin.setSelected(true);
-		btnSleep = new JButton(new AbstractAction("Sleep") {
+		btnSleep = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -229,6 +291,9 @@ public class PlayerPanel extends JPanel {
 				popup.show(btnSleep, 0, 0);
 			}
 		});
+
+		btnSleep.setIcon(Utils.getIcon(ResourceConstants.SLEEP_ICON));
+
 		btnRandom = new JToggleButton(new AbstractAction() {
 
 			@Override
@@ -238,6 +303,41 @@ public class PlayerPanel extends JPanel {
 		});
 		btnRandom.setIcon(Utils.getIcon(ResourceConstants.SHUFFLE_ICON));
 		btnRandom.setSelected(false);
+
+		btnFillSettings = new JButton(new AbstractAction("...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSettingsFrame();
+			}
+		});
+
+		cmbStrategy = new JComboBox();
+		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
+		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
+				.toArray(new PlaylistGenerator[list.size()])));
+
+		cmbStrategy.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				if (event.getStateChange() == ItemEvent.SELECTED) {
+					PlaylistGenerator item = (PlaylistGenerator) event
+							.getItem();
+					onStrategySelectionChange(item);
+				}
+			}
+		});
+
+		cmbStrategy.setSelectedIndex(0);
+		onStrategySelectionChange((PlaylistGenerator) cmbStrategy.getItemAt(0));
+
+	}
+
+	protected void onStrategySelectionChange(PlaylistGenerator newStrategy) {
+		currentStrategy = newStrategy;
+		currentStrategySettings = StrategyFactory
+				.getDefaultOrLastSettings(newStrategy);
 
 	}
 
@@ -251,6 +351,13 @@ public class PlayerPanel extends JPanel {
 
 	public boolean getIsInfiniPlay() {
 		return btnInfin.isSelected();
+	}
+
+	@Override
+	public void setCurrentProfileSettings(StrategyConfiguration strategySettngs) {
+		currentStrategySettings = strategySettngs;
+		StrategyFactory.updateLastSettings(currentStrategy,
+				currentStrategySettings);
 	}
 
 }

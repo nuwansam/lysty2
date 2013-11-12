@@ -33,7 +33,7 @@ import christophedelory.playlist.SpecificPlaylistProvider;
 public class FileUtils {
 
 	private static final String FILE_TYPE_UNKNOWN = "FILE TYPE UNKNOWN";
-	private static final String PARTIAL_PLAYLIST_EXT = "pp";
+	private static final String PARTIAL_PLAYLIST_EXT = "ppl";
 
 	public static javax.swing.filechooser.FileFilter selProfileFileFilter = new javax.swing.filechooser.FileFilter() {
 

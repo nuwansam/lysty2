@@ -8,7 +8,7 @@
         <jar destfile="${deploy.dir}/lysty.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.lysty.core.Main"/>
-                <attribute name="Class-Path" value=". lysty_lib/jogg-0.0.5.jar lysty_lib/jorbis-0.0.12.jar lysty_lib/junit-3.8.2.jar lysty_lib/mp3plugin.jar lysty_lib/tritonus_jorbis-0.3.6.jar lysty_lib/tritonus_remaining-0.3.6.jar lysty_lib/tritonus_share-0.3.6.jar lysty_lib/xerces.jar lysty_lib/log4j-1.2.17.jar lysty_lib/mybatis-3.2.0.jar lysty_lib/h2-1.3.173.jar lysty_lib/filedrop.jar lysty_lib/nanoxml-2.2.1.jar lysty_lib/args4j.jar lysty_lib/castor-core.jar lysty_lib/castor-xml.jar lysty_lib/commons-logging.jar lysty_lib/ffmpeg-java.jar lysty_lib/lizzy.jar lysty_lib/jspf.core-1.0.2.jar lysty_lib/jspf.remote-1.0.2.jar lysty_lib/jspf.remote.discovery-1.0.2.jar lysty_lib/jspf.remote.ermi-1.0.2.jar lysty_lib/jspf.remote.javascript-1.0.2.jar lysty_lib/jspf.remote.json-1.0.2.jar lysty_lib/jspf.remote.lipermi-1.0.2.jar lysty_lib/jspf.remote.xmlrpc-1.0.2.jar lysty_lib/jspf.remote.xmlrpcdelight-1.0.2.jar lysty_lib/miglayout15-swing.jar lysty_lib/jl1.0.1.jar lysty_lib/jaudiotagger-2.0.1.jar"/>
+                <attribute name="Class-Path" value=". lysty_lib/jogg-0.0.5.jar lysty_lib/jorbis-0.0.12.jar lysty_lib/junit-3.8.2.jar lysty_lib/mp3plugin.jar lysty_lib/tritonus_jorbis-0.3.6.jar lysty_lib/tritonus_remaining-0.3.6.jar lysty_lib/tritonus_share-0.3.6.jar lysty_lib/xerces.jar lysty_lib/log4j-1.2.17.jar lysty_lib/mybatis-3.2.0.jar lysty_lib/h2-1.3.173.jar lysty_lib/filedrop.jar lysty_lib/nanoxml-2.2.1.jar lysty_lib/args4j.jar lysty_lib/castor-core.jar lysty_lib/castor-xml.jar lysty_lib/commons-logging.jar lysty_lib/ffmpeg-java.jar lysty_lib/lizzy.jar lysty_lib/jspf.core-1.0.2.jar lysty_lib/jspf.remote-1.0.2.jar lysty_lib/jspf.remote.discovery-1.0.2.jar lysty_lib/jspf.remote.ermi-1.0.2.jar lysty_lib/jspf.remote.javascript-1.0.2.jar lysty_lib/jspf.remote.json-1.0.2.jar lysty_lib/jspf.remote.lipermi-1.0.2.jar lysty_lib/jspf.remote.xmlrpc-1.0.2.jar lysty_lib/jspf.remote.xmlrpcdelight-1.0.2.jar lysty_lib/miglayout15-swing.jar lysty_lib/jl1.0.1.jar lysty_lib/jaudiotagger-2.0.1.jar lysty_lib/weblaf-1.25.jar"/>
             </manifest>
             <fileset dir="${work.dir}/bin"/>
         </jar>
@@ -25,9 +25,18 @@
 		<copy todir="${deploy.dir}/plugins">
 			<fileset dir="${work.dir}/plugins"/>
 		</copy>
+		<copy todir="${deploy.dir}/resources">
+			<fileset dir="${work.dir}/resources"/>
+		</copy>
 		<copy todir="${deploy.dir}/sqls">
 			<fileset dir="${work.dir}/sqls"/>
 		</copy>
 		<copy file="${work.dir}/run.bat" tofile="${deploy.dir}/run.bat"/>
+		<copy file="${work.dir}/installer.nsi" tofile="${deploy.dir}/installer.nsi"/>
+		<copy file="${work.dir}/lysty_exe.xml" tofile="${deploy.dir}/lysty_exe.xml"/>
+	</target>
+	
+	<target name="clean">
+	<delete dir="${deploy.dir}"/>
 	</target>
 </project>

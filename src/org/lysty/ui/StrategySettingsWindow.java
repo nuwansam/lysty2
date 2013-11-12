@@ -1,5 +1,6 @@
 package org.lysty.ui;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -15,6 +16,7 @@ import org.lysty.strategies.StrategyConfiguration;
 
 public class StrategySettingsWindow extends LFrame {
 
+	private static final double CONTROL_PANEL_HEIGHT = 20;
 	private static StrategySettingsWindow self = null;
 
 	public static StrategySettingsWindow getInstance() {
@@ -24,7 +26,7 @@ public class StrategySettingsWindow extends LFrame {
 		return self;
 	}
 
-	private PlaylistProfileWindow playlistProfileWindow;
+	private StrategySettingsListener playlistProfileWindow;
 	private AbstractStrategySettingsPanel settingsPanel;
 	private PlaylistGenerator strategy;
 
@@ -33,23 +35,28 @@ public class StrategySettingsWindow extends LFrame {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void setProfileWindow(PlaylistProfileWindow playlistProfileWindow) {
+	public void setListener(StrategySettingsListener playlistProfileWindow) {
 		this.playlistProfileWindow = playlistProfileWindow;
 	}
 
-	public void showUi() {
-		this.setSize(500, 500);
+	public void showUi(Component parent) {
+		double w = settingsPanel.getPreferredSize().getWidth();
+		double h = settingsPanel.getPreferredSize().getHeight()
+				+ CONTROL_PANEL_HEIGHT;
+		this.setSize((int) w, (int) h);
+		this.pack();
 		this.setVisible(true);
+		this.setLocationRelativeTo(parent);
 	}
 
-	public void createUi(PlaylistGenerator strategy) {
+	public void createUi(PlaylistGenerator strategy, Component parent) {
 		this.strategy = strategy;
 		settingsPanel = StrategyFactory.getStrategySettingsPanel(strategy);
 		JPanel contentPanel = new JPanel(new MigLayout("insets 6 6 6 6"));
 		this.setContentPane(contentPanel);
 		contentPanel.add(settingsPanel, "span");
 		contentPanel.add(getControlPanel(), "span");
-		showUi();
+		showUi(parent);
 	}
 
 	private JPanel getControlPanel() {

@@ -51,8 +51,10 @@ import org.lysty.exceptions.StrategyInitiationException;
 import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.ui.model.PlaylistProfileModel;
 import org.lysty.util.FileUtils;
+import org.lysty.util.Utils;
 
-public class PlaylistProfileWindow extends LFrame {
+public class PlaylistProfileWindow extends LFrame implements
+		StrategySettingsListener {
 
 	private static final String SIZE_TYPE_LENGTH = "Length";
 	private static final String SIZE_TYPE_TIME = "Time";
@@ -76,7 +78,7 @@ public class PlaylistProfileWindow extends LFrame {
 
 	public static PlaylistProfileWindow getInstance() {
 		if (self == null) {
-			self = new PlaylistProfileWindow("Lysty");
+			self = new PlaylistProfileWindow("Lysty Partial Playlist Editor");
 		}
 		return self;
 	}
@@ -96,7 +98,7 @@ public class PlaylistProfileWindow extends LFrame {
 		scroller.setViewportView(table);
 		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		strategySettingsWindow = StrategySettingsWindow.getInstance();
-		strategySettingsWindow.setProfileWindow(this);
+		strategySettingsWindow.setListener(this);
 		// Create the drag and drop listener
 		TableDragDropListener myDragDropListener = new TableDragDropListener(
 				table);
@@ -207,7 +209,8 @@ public class PlaylistProfileWindow extends LFrame {
 		btnSettings = new JButton("Settings...");
 		pnlStrategy.add(btnSettings, "cell 1 0");
 
-		chkIsCircular = new JCheckBox("Circ");
+		chkIsCircular = new JCheckBox("circ",
+				Utils.getIcon(ResourceConstants.PLAY_ICON));
 		chkIsCircular.setSelected(true);
 		pnlStrategy.add(chkIsCircular, "cell 2 0");
 
@@ -306,7 +309,7 @@ public class PlaylistProfileWindow extends LFrame {
 	protected void showSettingsFrame() {
 		PlaylistGenerator strategy = (PlaylistGenerator) cmbStrategy
 				.getSelectedItem();
-		strategySettingsWindow.createUi(strategy);
+		strategySettingsWindow.createUi(strategy, this);
 	}
 
 	private JMenuBar createMenu() {

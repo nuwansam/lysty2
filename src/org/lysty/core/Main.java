@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -65,8 +66,16 @@ public class Main {
 		logger.info("extractors loaded.");
 		PlayerManager.getInstance();
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel("com.alee.laf.WebLookAndFeel");
 		} catch (Exception e) {
+			try {
+				UIManager.setLookAndFeel(UIManager
+						.getSystemLookAndFeelClassName());
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				logger.error(e1);
+			}
 			logger.error(e);
 		}
 	}
@@ -133,7 +142,7 @@ public class Main {
 			// just open the profile window
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					PlaylistProfileWindow.getInstance();
+					PlaylistPreviewWindow.getInstance();
 				}
 			});
 		}
