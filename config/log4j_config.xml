@@ -5,7 +5,7 @@
 
    <appender name="fileAppender" class="org.apache.log4j.RollingFileAppender">
       <param name="Threshold" value="INFO" />
-      <param name="File" value="logs/log.log"/>
+      <param name="File" value="${lysty_logs_folder_path}/log.log"/>
       <layout class="org.apache.log4j.PatternLayout">
          <param name="ConversionPattern" value="%d %-5p  [%c{1}] %m %n" />
       </layout>

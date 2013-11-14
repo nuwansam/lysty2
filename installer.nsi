@@ -8,10 +8,10 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "Lysty"
+Name "Lysty Installer"
 
 ; The file to write
-OutFile "Lysty.exe"
+OutFile "Lysty-Install.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Lysty
@@ -22,6 +22,100 @@ InstallDirRegKey HKLM "Software\Lysty" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
+
+!define StrRep "!insertmacro StrRep"
+!macro StrRep output string old new
+    Push `${string}`
+    Push `${old}`
+    Push `${new}`
+    !ifdef __UNINSTALL__
+        Call un.StrRep
+    !else
+        Call StrRep
+    !endif
+    Pop ${output}
+!macroend
+ 
+!macro Func_StrRep un
+    Function ${un}StrRep
+        Exch $R2 ;new
+        Exch 1
+        Exch $R1 ;old
+        Exch 2
+        Exch $R0 ;string
+        Push $R3
+        Push $R4
+        Push $R5
+        Push $R6
+        Push $R7
+        Push $R8
+        Push $R9
+ 
+        StrCpy $R3 0
+        StrLen $R4 $R1
+        StrLen $R6 $R0
+        StrLen $R9 $R2
+        loop:
+            StrCpy $R5 $R0 $R4 $R3
+            StrCmp $R5 $R1 found
+            StrCmp $R3 $R6 done
+            IntOp $R3 $R3 + 1 ;move offset by 1 to check the next character
+            Goto loop
+        found:
+            StrCpy $R5 $R0 $R3
+            IntOp $R8 $R3 + $R4
+            StrCpy $R7 $R0 "" $R8
+            StrCpy $R0 $R5$R2$R7
+            StrLen $R6 $R0
+            IntOp $R3 $R3 + $R9 ;move offset by length of the replacement string
+            Goto loop
+        done:
+ 
+        Pop $R9
+        Pop $R8
+        Pop $R7
+        Pop $R6
+        Pop $R5
+        Pop $R4
+        Pop $R3
+        Push $R0
+        Push $R1
+        Pop $R0
+        Pop $R1
+        Pop $R0
+        Pop $R2
+        Exch $R1
+    FunctionEnd
+!macroend
+!insertmacro Func_StrRep ""
+!insertmacro Func_StrRep "un."
+
+Function WriteToFile
+Exch $0 ;file to write to
+Exch
+Exch $1 ;text to write
+ 
+  FileOpen $0 $0 a #open file
+  FileSeek $0 0 END #go to end
+  FileWrite $0 $1 #write to file
+  FileClose $0
+ 
+Pop $1
+Pop $0
+FunctionEnd
+ 
+!macro WriteToFile NewLine File String
+  !if `${NewLine}` == true
+  Push `${String}$\r$\n`
+  !else
+  Push `${String}`
+  !endif
+  Push `${File}`
+  Call WriteToFile
+!macroend
+!define WriteToFile `!insertmacro WriteToFile false`
+!define WriteLineToFile `!insertmacro WriteToFile true`
+
 
 ;; Function that register one extension for Lysty
 Function RegisterExtension
@@ -91,13 +185,25 @@ Section "Install Files"
   
   ; Put file there
   File /r "config"
-  File /r "db"
   File /r "lysty_lib"
-  File /r "plugins"
   File /r "resources"
   File /r "sqls"
   File "lysty.jar"
   File "lysty.exe"
+  
+  ${StrRep} '$0' '$APPDATA' '\' '/'
+  ; write the db,logs,settings folder paths to the config
+  ${WriteLineToFile} `$INSTDIR\config\config.properties` `db_dir=$0/Lysty/db`
+  ${WriteLineToFile} `$INSTDIR\config\config.properties` `plugins_dir=$0/Lysty/plugins`
+  ${WriteLineToFile} `$INSTDIR\config\config.properties` `logs_dir=$0/Lysty/logs`
+  ;${WriteLineToFile} `$INSTDIR/config/config.properties` `settings_file=$0/Lysty/settings/settings.properties'
+ ${WriteLineToFile} `$INSTDIR\config\config.properties` `settings_file=$0/Lysty/settings/settings.properties`
+  
+ SetOutPath $APPDATA\Lysty
+  File /r "settings"
+  File /r "plugins"
+ SetOverwrite off
+  File /r "db"
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Lysty "Install_Dir" "$INSTDIR"

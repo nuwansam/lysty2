@@ -196,9 +196,10 @@ public class PlaylistProfileModel extends DefaultTableModel implements
 	}
 
 	public void loadFromSelProfile(SongSelectionProfile profile) {
+		songs = new ArrayList<Song>();
 		selProfile = profile;
 		int rows = 10;
-		if (selProfile.getSizeType() == selProfile.SIZE_TYPE_LENGTH) {
+		if (selProfile.getSizeType() == SongSelectionProfile.SIZE_TYPE_LENGTH) {
 			rows = selProfile.getSize();
 		}
 		Map<Song, Integer> map = selProfile.getRelPosMap();
@@ -211,8 +212,10 @@ public class PlaylistProfileModel extends DefaultTableModel implements
 			entry = it.next();
 			songs.set(entry.getValue(), entry.getKey());
 		}
+		fireTableDataChanged();
 	}
 
+	@Override
 	public void addSong(File file, int row) throws SongNotIndexedException {
 		isEdited = true;
 		Song song = DBHandler.getInstance().getSong(file);

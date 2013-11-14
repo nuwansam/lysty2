@@ -2,6 +2,7 @@ package org.lysty.db;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,10 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.swing.ProgressMonitor;
 
-import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
@@ -36,10 +37,14 @@ public class DBHandler {
 	private static Logger logger = Logger.getLogger(DBHandler.class);
 
 	private DBHandler() throws IOException {
-		String resource = "org/lysty/db/mybatis-config.xml";
+		File file = new File("config/mybatis-config.xml");
 		InputStream inputStream = null;
-		inputStream = Resources.getResourceAsStream(resource);
-		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+		inputStream = new FileInputStream(file);
+		Properties props = new Properties();
+		props.put(PropertyManager.DB_FOLDER,
+				PropertyManager.getProperty(PropertyManager.DB_FOLDER));
+		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream,
+				props);
 		try {
 			updateDB();
 		} catch (SQLException e) {
@@ -228,7 +233,6 @@ public class DBHandler {
 	}
 
 	public List<Song> getSongs(File folder) {
-		List<Song> songs = new ArrayList<Song>();
 		Song song;
 		long id = 0;
 		SqlSession session = DBHandler.sqlSessionFactory.openSession();
@@ -420,5 +424,9 @@ public class DBHandler {
 			session.close();
 		}
 
+	}
+
+	public List<Song> getAllSongs() {
+		return getSongs(null);
 	}
 }

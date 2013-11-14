@@ -1,6 +1,5 @@
 package org.lysty.ui;
 
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
@@ -11,16 +10,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.lysty.core.SongIndexer;
-import org.lysty.core.UpdateListener;
 
 public class IndexerWindow extends LFrame {
 

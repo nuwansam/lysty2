@@ -10,7 +10,8 @@ import org.lysty.extractors.FeatureExtractor;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.StrategyConfiguration;
 
-public class MetaTagMatchStrategySettingsFrame extends AbstractStrategySettingsPanel {
+public class MetaTagMatchStrategySettingsFrame extends
+		AbstractStrategySettingsPanel {
 
 	JComboBox cmbFeatures;
 

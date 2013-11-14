@@ -1,6 +1,5 @@
 package org.lysty.players;
 
-import org.lysty.players.PlayEvent.EventType;
 
 public class PlayEvent {
 

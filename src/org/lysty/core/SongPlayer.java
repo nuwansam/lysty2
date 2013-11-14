@@ -69,6 +69,7 @@ public class SongPlayer {
 			this.exceptionListener = exceptionListener;
 		}
 
+		@Override
 		public void run() {
 			try {
 				if (player != null)
@@ -76,6 +77,9 @@ public class SongPlayer {
 			} catch (SongPlayException e) {
 				// TODO Auto-generated catch block
 				exceptionListener.notifyException(e);
+			} catch (Exception e1) {
+				exceptionListener.notifyException(e1);
+				e1.printStackTrace();
 			}
 		}
 	}

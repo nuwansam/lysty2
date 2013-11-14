@@ -1,11 +1,11 @@
 package org.lysty.util;
 
-import java.awt.Image;
-import java.io.File;
+import java.io.IOException;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
 public class Utils {
@@ -63,5 +63,43 @@ public class Utils {
 			logger.error("Error loading icon for: " + iconName, e);
 		}
 		return null;
+	}
+
+	public static boolean isNumber(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static boolean shutdown(int time) throws IOException {
+		String shutdownCommand = null, t = time == 0 ? "now" : String
+				.valueOf(time);
+
+		if (SystemUtils.IS_OS_AIX)
+			shutdownCommand = "shutdown -Fh " + t;
+		else if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_LINUX
+				|| SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX
+				|| SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD
+				|| SystemUtils.IS_OS_UNIX)
+			shutdownCommand = "shutdown -h " + t;
+		else if (SystemUtils.IS_OS_HP_UX)
+			shutdownCommand = "shutdown -hy " + t;
+		else if (SystemUtils.IS_OS_IRIX)
+			shutdownCommand = "shutdown -y -g " + t;
+		else if (SystemUtils.IS_OS_SOLARIS || SystemUtils.IS_OS_SUN_OS)
+			shutdownCommand = "shutdown -y -i5 -g" + t;
+		else if (SystemUtils.IS_OS_WINDOWS_XP
+				|| SystemUtils.IS_OS_WINDOWS_VISTA
+				|| SystemUtils.IS_OS_WINDOWS_7)
+			shutdownCommand = "shutdown.exe -s -t " + t;
+		else
+			return false;
+
+		logger.info("Attempting to shutdown");
+		Runtime.getRuntime().exec(shutdownCommand);
+		return true;
 	}
 }

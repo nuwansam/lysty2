@@ -19,6 +19,7 @@ import org.lysty.extractors.FeatureExtractor;
 public class ExtractorManager {
 
 	private static final String EXTRACTOR_JAR_NAME = "extractor.jar";
+	private static final String EXTRACTORS_FOLDER = "extractors";
 	private static List<FeatureExtractor> extractors;
 	private static Map<FeatureExtractor, Long> extractorTimestamp;
 	static Logger logger = Logger.getLogger(ExtractorManager.class);
@@ -39,8 +40,8 @@ public class ExtractorManager {
 		extractors = new ArrayList<FeatureExtractor>();
 		extractorTimestamp = new HashMap<FeatureExtractor, Long>();
 		File file = new File(
-				PropertyManager
-						.getProperty(PropertyManager.EXTRACTOR_FOLDER_PATH));
+				PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+						+ File.separator + EXTRACTORS_FOLDER);
 		File[] sDirs = file.listFiles(new FileFilter() {
 
 			@Override

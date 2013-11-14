@@ -2,13 +2,10 @@ package org.lysty.players;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
-import javazoom.jl.player.PlayerApplet;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import javazoom.jl.player.advanced.PlaybackEvent;
 import javazoom.jl.player.advanced.PlaybackListener;

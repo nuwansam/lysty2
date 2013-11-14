@@ -49,6 +49,9 @@ public class StrategySettingsWindow extends LFrame {
 		this.setLocationRelativeTo(parent);
 	}
 
+	public void loadSettings(StrategyConfiguration config){
+		settingsPanel.setConfig(config);
+	}
 	public void createUi(PlaylistGenerator strategy, Component parent) {
 		this.strategy = strategy;
 		settingsPanel = StrategyFactory.getStrategySettingsPanel(strategy);

@@ -1,7 +1,6 @@
 package org.lysty.ui;
 
-import java.awt.Color;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
@@ -10,6 +9,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -18,7 +19,6 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DropMode;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -31,17 +31,21 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.JToggleButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
-import javax.swing.border.MatteBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumnModel;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.log4j.Logger;
+import org.lysty.core.AppSettingsManager;
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.PropertyManager;
 import org.lysty.core.StrategyFactory;
@@ -56,8 +60,9 @@ import org.lysty.util.Utils;
 public class PlaylistProfileWindow extends LFrame implements
 		StrategySettingsListener {
 
-	private static final String SIZE_TYPE_LENGTH = "Length";
-	private static final String SIZE_TYPE_TIME = "Time";
+	private static final String SIZE_TYPE_LENGTH = "Songs";
+	private static final String SIZE_TYPE_TIME = "Minutes";
+	private static final int DEF_PLAYLIST_SIZE = 10;
 	JTable table;
 	PlaylistProfileModel playlistModel;
 	protected JPopupMenu tablePopup;
@@ -65,7 +70,7 @@ public class PlaylistProfileWindow extends LFrame implements
 	private JComboBox<String> cmbSizeType;
 	private JComboBox cmbStrategy;
 	private StrategySettingsWindow strategySettingsWindow;
-	private JCheckBox chkIsCircular;
+	private JToggleButton chkIsCircular;
 
 	private StrategyConfiguration currentStrategySettings;
 	private PlaylistGenerator currentStrategy;
@@ -85,18 +90,62 @@ public class PlaylistProfileWindow extends LFrame implements
 
 	private PlaylistProfileWindow(String title) {
 		super(title);
-		WindowManager.getInstance().registerWindow(this);
+		addWindowListener(new WindowAdapter() {
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				writeSettings();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+		});
 		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		init();
+		loadLastSettings();
+	}
+
+	/**
+	 * Loads the last settings for each control
+	 */
+	private void loadLastSettings() {
+		spnSize.setValue(Integer.parseInt(AppSettingsManager.getProperty(
+				AppSettingsManager.LS_PPL_SIZE, DEF_PLAYLIST_SIZE + "")));
+		String lsFillStrategy = AppSettingsManager
+				.getProperty(AppSettingsManager.LS_FILL_STRATEGY);
+		PlaylistGenerator strategy;
+		for (int i = 0; i < cmbStrategy.getItemCount(); i++) {
+			strategy = (PlaylistGenerator) cmbStrategy.getItemAt(i);
+			if (strategy.getStrategyDisplayName().equalsIgnoreCase(
+					lsFillStrategy)) {
+				cmbStrategy.setSelectedIndex(i);
+				break;
+			}
+		}
+		chkIsCircular.setSelected(AppSettingsManager
+				.getPropertyAsBoolean(AppSettingsManager.LS_IS_CIRC_PPL));
+	}
+
+	private void writeSettings() {
+		AppSettingsManager.setProperty(AppSettingsManager.LS_FILL_STRATEGY,
+				((PlaylistGenerator) cmbStrategy.getSelectedItem())
+						.getStrategyDisplayName());
+		AppSettingsManager.setProperty(AppSettingsManager.LS_IS_CIRC_PPL,
+				chkIsCircular.isSelected() ? "true" : "false");
+		AppSettingsManager.setProperty(AppSettingsManager.LS_PPL_SIZE,
+				spnSize.getValue() + "");
+
 	}
 
 	public void init() {
-		createUI();
 		createControlPanel();
 		table = new JTable();
 		table.setTableHeader(null);
+		scroller = new JScrollPane();
 		scroller.setViewportView(table);
-		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		strategySettingsWindow = StrategySettingsWindow.getInstance();
 		strategySettingsWindow.setListener(this);
 		// Create the drag and drop listener
@@ -157,67 +206,40 @@ public class PlaylistProfileWindow extends LFrame implements
 		// Add the label to the content
 
 		// Show the frame
+		layoutUI();
 		this.setVisible(true);
-		this.setResizable(false);
 	}
 
-	/**
-	 * Generated code for UI creation
-	 */
-	private void createUI() {
-		setBounds(100, 100, 330, 540);
-		getContentPane().setLayout(null);
-		getContentPane().setLayout(null);
+	private void layoutUI() {
+		JPanel pnlControl = new JPanel(new MigLayout("insets 2 2 2 2",
+				"[][][][]push[]", "[]"));
+		pnlControl.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
+				TitledBorder.TOP, null, null));
+		pnlControl.add(new JLabel("Size"));
+		pnlControl.add(spnSize);
+		pnlControl.add(cmbSizeType);
+		pnlControl.add(chkIsCircular);
+		pnlControl.add(btnFillPlay);
 
-		JPanel pnlControl = new JPanel();
-		pnlControl.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0,
-				0, 0)));
-		pnlControl.setBounds(10, 6, 300, 35);
-		getContentPane().add(pnlControl);
-		pnlControl.setLayout(new MigLayout("",
-				"[19px][29px][][46px][][][][][28px][][]", "[20px]"));
+		JPanel pnlStrategy = new JPanel(new MigLayout("insets 2 2 2 2",
+				"[][grow][]", "[]"));
+		pnlStrategy.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
+				TitledBorder.TOP, null, null));
+		pnlStrategy.add(new JLabel("Fill Method"));
+		pnlStrategy.add(cmbStrategy, "grow");
+		pnlStrategy.add(btnSettings);
 
-		JLabel lblSize = new JLabel("Size");
-		pnlControl.add(lblSize, "cell 0 0,alignx left,aligny center");
+		JPanel panel = new JPanel(new MigLayout("", "[grow]", "[][][grow]"));
+		panel.add(pnlControl, "cell 0 0, grow");
+		panel.add(pnlStrategy, "cell 0 1,grow");
+		panel.add(scroller, "cell 0 2,grow");
 
-		spnSize = new JSpinner();
-		pnlControl.add(spnSize, "cell 1 0 2 1,alignx left,aligny top");
-
-		JLabel lblSizeType = new JLabel("Size Type");
-		pnlControl.add(lblSizeType, "cell 3 0,alignx left,aligny center");
-
-		cmbSizeType = new JComboBox();
-		pnlControl.add(cmbSizeType, "cell 4 0 2 1,alignx left,aligny top");
-
-		btnFillPlay = new JButton("Fill & Play");
-		btnFillPlay.setFont(new Font("Tahoma", Font.BOLD, 12));
-		pnlControl.add(btnFillPlay, "cell 10 0,alignx right");
-
-		JPanel pnlStrategy = new JPanel();
-		pnlStrategy.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0,
-				0, 0)));
-		pnlStrategy.setBounds(10, 46, 300, 35);
-		getContentPane().add(pnlStrategy);
-		pnlStrategy.setLayout(new MigLayout("", "[][grow]", "[]"));
-
-		JLabel lblFillMethod = new JLabel("Fill Method");
-		pnlStrategy.add(lblFillMethod, "cell 0 0,alignx trailing");
-
-		cmbStrategy = new JComboBox();
-		pnlStrategy.add(cmbStrategy, "flowx,cell 1 0,alignx left");
-
-		btnSettings = new JButton("Settings...");
-		pnlStrategy.add(btnSettings, "cell 1 0");
-
-		chkIsCircular = new JCheckBox("circ",
-				Utils.getIcon(ResourceConstants.PLAY_ICON));
-		chkIsCircular.setSelected(true);
-		pnlStrategy.add(chkIsCircular, "cell 2 0");
-
-		scroller = new JScrollPane();
-		scroller.setBounds(10, 92, 300, 380);
-		getContentPane().add(scroller);
-
+		setContentPane(panel);
+		pack();
+		this.setMinimumSize(new Dimension(330, 400));
+		this.setMaximumSize(new Dimension(330, 800));
+		this.setSize(new Dimension(330, 450));
+		setVisible(true);
 	}
 
 	public void setSize(int size) {
@@ -225,8 +247,11 @@ public class PlaylistProfileWindow extends LFrame implements
 	}
 
 	private void createControlPanel() {
+		cmbSizeType = new JComboBox();
+		spnSize = new JSpinner();
+
 		cmbSizeType.addItem(SIZE_TYPE_LENGTH);
-		cmbSizeType.addItem(SIZE_TYPE_TIME);
+		// cmbSizeType.addItem(SIZE_TYPE_TIME); //not supported yet
 
 		int defLen = Integer.parseInt(PropertyManager
 				.getProperty(PropertyManager.DEF_PLAYLIST_LEN));
@@ -260,6 +285,7 @@ public class PlaylistProfileWindow extends LFrame implements
 		});
 
 		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
+		cmbStrategy = new JComboBox();
 		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
 				.toArray(new PlaylistGenerator[list.size()])));
 
@@ -277,7 +303,7 @@ public class PlaylistProfileWindow extends LFrame implements
 
 		cmbStrategy.setSelectedIndex(0);
 
-		btnSettings.setAction(new AbstractAction("Settings...") {
+		btnSettings = new JButton(new AbstractAction("...") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -285,7 +311,7 @@ public class PlaylistProfileWindow extends LFrame implements
 			}
 		});
 
-		btnFillPlay.setAction(new AbstractAction("Fill & Play") {
+		btnFillPlay = new JButton(new AbstractAction("Fill & Play") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -296,6 +322,9 @@ public class PlaylistProfileWindow extends LFrame implements
 				}
 			}
 		});
+
+		chkIsCircular = new JToggleButton(
+				Utils.getIcon(ResourceConstants.CIRCULAR_ICON));
 		onStrategySelectionChange((PlaylistGenerator) cmbStrategy.getItemAt(0));
 	}
 
@@ -310,6 +339,9 @@ public class PlaylistProfileWindow extends LFrame implements
 		PlaylistGenerator strategy = (PlaylistGenerator) cmbStrategy
 				.getSelectedItem();
 		strategySettingsWindow.createUi(strategy, this);
+		if (currentStrategySettings != null) {
+			strategySettingsWindow.loadSettings(currentStrategySettings);
+		}
 	}
 
 	private JMenuBar createMenu() {
@@ -317,7 +349,7 @@ public class PlaylistProfileWindow extends LFrame implements
 
 		JMenu mnuFile = new JMenu("File");
 		JMenuItem mnuFileNew = new JMenuItem(new AbstractAction(
-				"New Selection Profile") {
+				"New Partial Playlist") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -328,7 +360,7 @@ public class PlaylistProfileWindow extends LFrame implements
 		});
 
 		JMenuItem mnuFileSaveSP = new JMenuItem(new AbstractAction(
-				"Save Selection Profile") {
+				"Save Partial Playlist") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -336,17 +368,8 @@ public class PlaylistProfileWindow extends LFrame implements
 			}
 		});
 
-		JMenuItem mnuFileSavePL = new JMenuItem(new AbstractAction(
-				"Save Playlist") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				savePlaylist();
-			}
-		});
-
 		JMenuItem mnuFileLoadSP = new JMenuItem(new AbstractAction(
-				"Load Selection Profile") {
+				"Load Partial Playlist") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -356,51 +379,24 @@ public class PlaylistProfileWindow extends LFrame implements
 			}
 		});
 
-		JMenuItem mnuFileExit = new JMenuItem(new AbstractAction("Exit") {
+		JMenuItem mnuFileExit = new JMenuItem(new AbstractAction("Close") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (playlistModel.isEdited()) {
-					boolean isCancel = saveOnRequest();
-					if (!isCancel)
-						exit();
-				}
-				exit();
+
+				close();
 			}
 		});
 
 		mnuFile.add(mnuFileNew);
 		mnuFile.add(mnuFileLoadSP);
+		mnuFile.addSeparator();
 		mnuFile.add(mnuFileSaveSP);
-		mnuFile.add(mnuFileSavePL);
+		mnuFile.addSeparator();
 		mnuFile.add(mnuFileExit);
 		menu.add(mnuFile);
 
-		JMenu mnuTools = new JMenu("Tools");
-		JMenuItem mnuToolsIndex = new JMenuItem(new AbstractAction("Index...") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Commands.showIndexDialog(PlaylistProfileWindow.this);
-			}
-		});
-		mnuTools.add(mnuToolsIndex);
-
-		JMenuItem mnuToolsGenerate = new JMenuItem(new AbstractAction("Fill") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					generatePlayList(false);
-				} catch (Exception e1) {
-					logger.error("Error generating playlist", e1);
-				}
-			}
-		});
-		mnuTools.add(mnuToolsGenerate);
-
 		menu.add(mnuFile);
-		menu.add(mnuTools);
 		return menu;
 	}
 
@@ -421,8 +417,11 @@ public class PlaylistProfileWindow extends LFrame implements
 		win.init(list, autoPlay, getSelectionProfile());
 	}
 
-	protected void exit() {
-		this.dispose();
+	protected void close() {
+		writeSettings();
+		playlistModel = new PlaylistProfileModel(playlistModel.getRowCount());
+		table.setModel(playlistModel);
+		this.setVisible(false);
 	}
 
 	/**
@@ -460,7 +459,16 @@ public class PlaylistProfileWindow extends LFrame implements
 
 	public void loadSelProfile(File file) {
 		SongSelectionProfile selProfile = FileUtils.loadSelectionProfile(file);
+		setSelectedStrategy(selProfile.getStrategy());
+		spnSize.setValue(selProfile.getSize());
+		cmbSizeType.setSelectedIndex(selProfile.getSizeType());
+		currentStrategySettings = selProfile.getStrategyConfig();
+		chkIsCircular.setSelected(selProfile.isCircular());
 		playlistModel.loadFromSelProfile(selProfile);
+	}
+
+	private void setSelectedStrategy(PlaylistGenerator strategy) {
+		cmbStrategy.setSelectedItem(strategy);
 	}
 
 	/**
@@ -477,6 +485,8 @@ public class PlaylistProfileWindow extends LFrame implements
 		SongSelectionProfile profile = playlistModel.getSelProfile();
 		profile.setStrategy(currentStrategy);
 		profile.setStrategyConfig(currentStrategySettings);
+		profile.setIsCircular(chkIsCircular.isSelected());
+		profile.setSizeType(cmbSizeType.getSelectedIndex());
 		return profile;
 	}
 
@@ -491,13 +501,18 @@ public class PlaylistProfileWindow extends LFrame implements
 		if (selProfile.getFile() == null) {
 			// no file set. SaveAs...
 			JFileChooser chooser = new JFileChooser();
+			chooser.setFileFilter(new FileNameExtensionFilter(
+					"Partial Playlists", FileUtils.PARTIAL_PLAYLIST_EXT));
 			int c = chooser.showSaveDialog(this);
 			if (c != JFileChooser.APPROVE_OPTION) {
 				return false;
 			}
 			File file = chooser.getSelectedFile();
+			String fileName = file.toString();
+			if (!fileName.endsWith(FileUtils.PARTIAL_PLAYLIST_EXT))
+				fileName += FileUtils.PARTIAL_PLAYLIST_EXT;
 			try {
-				FileUtils.writeXml(file, selProfile.getXml());
+				FileUtils.writeXml(new File(fileName), selProfile.getXml());
 				playlistModel.saved();
 				return true;
 			} catch (IOException e) {
@@ -519,9 +534,7 @@ public class PlaylistProfileWindow extends LFrame implements
 		}
 	}
 
-	protected void savePlaylist() {
-	}
-
+	@Override
 	public void setCurrentProfileSettings(StrategyConfiguration strategySettings) {
 		this.currentStrategySettings = strategySettings;
 		StrategyFactory.updateLastSettings(currentStrategy, strategySettings);

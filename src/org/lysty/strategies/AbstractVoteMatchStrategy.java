@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.naming.ConfigurationException;
-
-import net.xeoh.plugins.base.annotations.PluginImplementation;
-
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
@@ -120,7 +116,7 @@ public abstract class AbstractVoteMatchStrategy implements PlaylistGenerator {
 	private void fillCandidates(Map<Song, Integer> candidates,
 			Map<Song, Integer> votedSongs, float weight, List<Song> alreadyIns) {
 		if (votedSongs == null) {
-			System.out.println("NULL");
+			votedSongs = new HashMap<Song, Integer>();
 		}
 		Iterator<Entry<Song, Integer>> it = votedSongs.entrySet().iterator();
 		Entry<Song, Integer> entry;

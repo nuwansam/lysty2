@@ -4,15 +4,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import net.n3.nanoxml.IXMLElement;
-import net.xeoh.plugins.base.Plugin;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 
@@ -26,14 +25,14 @@ import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.util.FileUtils;
 
-import christophedelory.plist.Array;
-
 public class StrategyFactory {
 
+	private static final String STRATEGIES_FOLDER = "strategies";
 	private static final String SETTINGS_FRAME_CLASSNAME_SUFFIX = "SettingsFrame";
 	private static final String STRATEGY_JAR_NAME = "strategy.jar";
 	private static final String STRATEGY_FOLDER_NAME = "strategy";
 	private static List<PlaylistGenerator> allStrategies;
+	private static Map<String, PlaylistGenerator> classNameMap = new HashMap<String, PlaylistGenerator>();
 	private static Logger logger = Logger.getLogger(StrategyFactory.class);
 
 	public static List<Song> getPlaylistByStrategy(PlaylistGenerator strategy,
@@ -125,8 +124,8 @@ public class StrategyFactory {
 
 	private static StrategyConfiguration getLastSettings(
 			PlaylistGenerator strategy) throws FileNotFoundException {
-		String path = PropertyManager
-				.getProperty(PropertyManager.STRATEGY_FOLDER_PATH);
+		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+				+ File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "lastSettings.xml");
 		return getConfig(file);
@@ -146,8 +145,8 @@ public class StrategyFactory {
 
 	public static StrategyConfiguration getDefaultSettings(
 			PlaylistGenerator strategy) {
-		String path = PropertyManager
-				.getProperty(PropertyManager.STRATEGY_FOLDER_PATH);
+		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+				+ File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "defSettings.xml");
 		return getConfig(file);
@@ -155,8 +154,8 @@ public class StrategyFactory {
 
 	public static void updateLastSettings(PlaylistGenerator strategy,
 			StrategyConfiguration strategySettngs) {
-		String path = PropertyManager
-				.getProperty(PropertyManager.STRATEGY_FOLDER_PATH);
+		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+				+ File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "lastSettings.xml");
 
@@ -173,8 +172,8 @@ public class StrategyFactory {
 		PluginManager manager = PluginManagerFactory.createPluginManager();
 		allStrategies = new ArrayList<PlaylistGenerator>();
 		File file = new File(
-				PropertyManager
-						.getProperty(PropertyManager.STRATEGY_FOLDER_PATH));
+				PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+						+ File.separator + STRATEGIES_FOLDER);
 		File[] sDirs = file.listFiles(new FileFilter() {
 
 			@Override
@@ -193,8 +192,13 @@ public class StrategyFactory {
 					.getPlugin(PlaylistGenerator.class);
 			if (strategy != null) {
 				allStrategies.add(strategy);
+				classNameMap.put(strategy.getClass().getName(), strategy);
 				logger.info("Loaded fill strategy: " + sDir.getName());
 			}
 		}
+	}
+
+	public static PlaylistGenerator getStrategyByClassName(String strategyClass) {
+		return classNameMap.get(strategyClass);
 	}
 }

@@ -1,11 +1,9 @@
 package org.lysty.extractors;
 
 import java.util.List;
-import java.util.Map;
 
 import org.lysty.core.ExtractorManager;
 import org.lysty.dao.Song;
-import org.lysty.db.DBHandler;
 import org.lysty.exceptions.FeatureExtractionException;
 
 public class ExtractSequencer {

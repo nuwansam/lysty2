@@ -1,8 +1,8 @@
 package org.lysty.core;
 
-import org.lysty.exceptions.InvalidXMLException;
-
 import net.n3.nanoxml.IXMLElement;
+
+import org.lysty.exceptions.InvalidXMLException;
 
 public interface XMLSerializable {
 

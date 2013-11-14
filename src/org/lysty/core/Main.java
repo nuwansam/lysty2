@@ -6,18 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.lysty.dao.Song;
-import org.lysty.dao.SongSelectionProfile;
 import org.lysty.db.DBHandler;
 import org.lysty.players.PlayerManager;
-import org.lysty.strategies.random.RandomStrategy;
 import org.lysty.ui.ApplicationInstanceListener;
 import org.lysty.ui.ApplicationInstanceManager;
+import org.lysty.ui.PlayerPanel;
 import org.lysty.ui.PlaylistPreviewWindow;
 import org.lysty.ui.PlaylistProfileWindow;
 import org.lysty.util.FileUtils;
@@ -29,11 +28,12 @@ public class Main {
 
 	private static final String PLAY_NEXT = "PLAY_NEXT";
 
-	private static final String PATH_TO_PROPERTIES_FILE = "/config.properties";
-
 	static Logger logger = Logger.getLogger(Main.class);
 
 	public static void main(String[] args) {
+		PropertyManager.loadProperties();
+		System.setProperty("lysty_logs_folder_path",
+				PropertyManager.getProperty(PropertyManager.LOGS_FOLDER));
 		DOMConfigurator.configure("config/log4j_config.xml");
 		boolean success = ApplicationInstanceManager.registerInstance(args);
 		if (!success) {
@@ -47,6 +47,7 @@ public class Main {
 
 		ApplicationInstanceManager
 				.setApplicationInstanceListener(new ApplicationInstanceListener() {
+					@Override
 					public void newInstanceCreated(String[] args) {
 						logger.info("New instance detected with following args:");
 						for (int i = 0; i < args.length; i++) {
@@ -58,13 +59,15 @@ public class Main {
 	}
 
 	private static void init() {
-		PropertyManager.loadProperties(PATH_TO_PROPERTIES_FILE);
+		// PropertyManager.loadProperties();
 		DBHandler.getInstance();
 		StrategyFactory.loadStrategies();
 		logger.info("strategies loaded.");
 		ExtractorManager.loadExtractors();
 		logger.info("extractors loaded.");
 		PlayerManager.getInstance();
+		AppSettingsManager.loadProperties(new File(PropertyManager
+				.getProperty(PropertyManager.SETTINGS_FILE)));
 		try {
 			UIManager.setLookAndFeel("com.alee.laf.WebLookAndFeel");
 		} catch (Exception e) {
@@ -108,7 +111,9 @@ public class Main {
 			if (FileUtils.isPartialPlaylistFile(file)) {
 				// partial playlist
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
+						PlaylistPreviewWindow.getInstance();
 						PlaylistProfileWindow window = PlaylistProfileWindow
 								.getInstance();
 						window.loadSelProfile(file);
@@ -118,29 +123,39 @@ public class Main {
 				});
 			} else if (FileUtils.isSupportedSongFile(file)) {
 				PlaylistPreviewWindow win = PlaylistPreviewWindow.getInstance();
-				SongSelectionProfile profile = new SongSelectionProfile();
-				Map<Song, Integer> map = new HashMap<Song, Integer>();
 				Song song = DBHandler.getInstance().getSong(file);
 				if (song == null) {
 					song = new Song(file);
 				}
-				map.put(song, 0);
-				profile.setRelPosMap(map);
-				PlaylistGenerator strategy = new RandomStrategy();
-				profile.setStrategy(strategy);
-				profile.setStrategyConfig(StrategyFactory
-						.getDefaultOrLastSettings(strategy));
+				if (win.getCurrentState() == PlayerPanel.PlayState.PLAYING
+						&& "true"
+								.equalsIgnoreCase(AppSettingsManager
+										.getProperty(AppSettingsManager.PLAY_NEXT_WHEN_LOAD_ON_CURRENT_PLAY))) {
+					PlaylistPreviewWindow.getInstance().addSongNext(song);
+				} else {
+					// SongSelectionProfile profile = new
+					// SongSelectionProfile();
+					Map<Song, Integer> map = new HashMap<Song, Integer>();
+					map.put(song, 0);
+					// profile.setRelPosMap(map);
 
-				List<Song> songList = new ArrayList<Song>();
-				songList.add(song);
-				win.init(songList, true, profile);
+					List<Song> songList = new ArrayList<Song>();
+					songList.add(song);
+					win.init(songList, true, null);
+				}
 			} else {
 				// unsupported file format
 				logger.info("Unsupported File: " + file.getAbsolutePath());
+				JOptionPane
+						.showMessageDialog(
+								null,
+								file.getName()
+										+ " cannot be played since the file type is not supported");
 			}
 		} else if (args.length == 0) {
 			// just open the profile window
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+				@Override
 				public void run() {
 					PlaylistPreviewWindow.getInstance();
 				}

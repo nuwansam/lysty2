@@ -1,6 +1,5 @@
 package org.lysty.ui;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,16 +10,18 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
-import javax.swing.border.MatteBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -48,6 +49,8 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 	private JToggleButton btnInfin;
 	private JButton btnSleep;
 	private JToggleButton btnRandom;
+
+	private static final int MINS_TO_MILIS = 60000;
 
 	public enum PlayState {
 		PLAYING, PAUSED, STOPPED
@@ -185,6 +188,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				timer.stop();
 			}
 			timer = new Timer(1000, new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent evt) {
 					// ...Update the progress bar...
 					progress.setValue(progress.getValue() + 1);
@@ -205,12 +209,12 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		progress.setPreferredSize(new Dimension(300, 10));
 		progress.setMaximumSize(new Dimension(300, 10));
 		progress.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseClicked(MouseEvent e) {
 				int tW = progress.getWidth();
 				int cW = e.getX();
 				int newProgress = progress.getMaximum() * cW / tW;
-				listener.play((int) Math.ceil(newProgress
-						* DEFAULT_FRAMES_PER_SECS));
+				listener.play((int) newProgress * DEFAULT_FRAMES_PER_SECS);
 				progress.setValue(newProgress);
 			}
 		});
@@ -249,7 +253,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				listener.stop();
-				setState(PlayerPanel.PlayState.PLAYING);
+				setState(PlayState.STOPPED);
 				listener.next();
 			}
 		});
@@ -259,7 +263,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				listener.stop();
-				setState(PlayerPanel.PlayState.PLAYING);
+				setState(PlayState.STOPPED);
 				listener.prev();
 			}
 		});
@@ -274,19 +278,32 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				listener.setInfinyPlay(btnInfin.isSelected());
 			}
 		});
-		btnInfin.setSelected(true);
 		btnSleep = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPopupMenu popup = new JPopupMenu();
-				JMenuItem mnuHour = new JMenuItem(new AbstractAction("1 Hour") {
+				JMenuItem mnuHour = new JRadioButtonMenuItem(
+						new AbstractAction("1 Hour") {
 
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						listener.setTimer(60);
-					}
-				});
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								listener.setTimer(1 * MINS_TO_MILIS);
+							}
+						});
+				JMenuItem mnuCancel = new JRadioButtonMenuItem(
+						new AbstractAction("No Sleep") {
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								listener.cancelTimer();
+							}
+						});
+
+				ButtonGroup group = new ButtonGroup();
+				group.add(mnuCancel);
+				group.add(mnuHour);
+				popup.add(mnuCancel);
 				popup.add(mnuHour);
 				popup.show(btnSleep, 0, 0);
 			}
@@ -358,6 +375,15 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		currentStrategySettings = strategySettngs;
 		StrategyFactory.updateLastSettings(currentStrategy,
 				currentStrategySettings);
+	}
+
+	public void setInfiniPlay(boolean selected) {
+		btnInfin.setSelected(selected);
+	}
+
+	public void setStrategy(PlaylistGenerator strategy) {
+		currentStrategy = strategy;
+		cmbStrategy.setSelectedItem(currentStrategy);
 	}
 
 }

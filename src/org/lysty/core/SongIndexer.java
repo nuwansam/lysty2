@@ -2,20 +2,17 @@ package org.lysty.core;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.lysty.dao.Song;
 import org.lysty.db.DBHandler;
 import org.lysty.exceptions.FeatureExtractionException;
 import org.lysty.extractors.ExtractSequencer;
 import org.lysty.extractors.MetaTagExtractor;
-import org.tritonus.share.TNotifier.NotifyEntry;
 
 public class SongIndexer {
 

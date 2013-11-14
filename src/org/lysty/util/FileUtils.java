@@ -13,7 +13,6 @@ import net.n3.nanoxml.IXMLElement;
 import net.n3.nanoxml.IXMLParser;
 import net.n3.nanoxml.IXMLReader;
 import net.n3.nanoxml.StdXMLReader;
-import net.n3.nanoxml.XMLElement;
 import net.n3.nanoxml.XMLParserFactory;
 import net.n3.nanoxml.XMLWriter;
 
@@ -33,7 +32,7 @@ import christophedelory.playlist.SpecificPlaylistProvider;
 public class FileUtils {
 
 	private static final String FILE_TYPE_UNKNOWN = "FILE TYPE UNKNOWN";
-	private static final String PARTIAL_PLAYLIST_EXT = "ppl";
+	public static final String PARTIAL_PLAYLIST_EXT = "ppl";
 
 	public static javax.swing.filechooser.FileFilter selProfileFileFilter = new javax.swing.filechooser.FileFilter() {
 

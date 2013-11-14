@@ -47,6 +47,7 @@ public class ApplicationInstanceManager {
 			log.debug("Listening for application instances on socket "
 					+ SINGLE_INSTANCE_NETWORK_SOCKET);
 			Thread instanceListenerThread = new Thread(new Runnable() {
+				@Override
 				public void run() {
 					boolean socketClosed = false;
 					while (!socketClosed) {
@@ -59,10 +60,14 @@ public class ApplicationInstanceManager {
 										new InputStreamReader(client
 												.getInputStream()));
 								String message = in.readLine();
+								if (message == null)
+									message = "";
 								if (SINGLE_INSTANCE_SHARED_KEY.trim().equals(
 										message.trim())) {
 									log.debug("Shared key matched - new application instance found");
 									String newArgsStr = in.readLine();
+									if (newArgsStr == null)
+										newArgsStr = "";
 									String[] newArgs = newArgsStr.split("\\|");
 									if (NO_ARGS_STR.equals(newArgs[0])) {
 										fireNewInstance(new String[0]);

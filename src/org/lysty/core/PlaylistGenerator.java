@@ -41,7 +41,9 @@ public interface PlaylistGenerator extends Plugin {
 	 */
 	public String getStrategyDisplayName();
 
+	@Override
 	public String toString();
 
 	public AbstractStrategySettingsPanel getStrategySettingsFrame();
+
 }

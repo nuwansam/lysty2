@@ -1,21 +1,12 @@
 package org.lysty.strategies.metatagmatch;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
-import org.lysty.core.PlaylistGenerator;
 import org.lysty.dao.Song;
-import org.lysty.dao.SongSelectionProfile;
-import org.lysty.db.DBHandler;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.AbstractVoteMatchStrategy;
-import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.util.Utils;
 
 @PluginImplementation
@@ -26,6 +17,7 @@ public class MetaTagMatchStrategy extends AbstractVoteMatchStrategy {
 	private static final String FEATURE_ARTIST = "artist";
 	private String feature;
 
+	@Override
 	protected int getVotes(Song song, Song candidate) {
 		if (feature == null)
 			feature = FEATURE_ARTIST;

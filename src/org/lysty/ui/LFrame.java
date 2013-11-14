@@ -14,10 +14,5 @@ public class LFrame extends JFrame {
 		super(title);
 		this.setIconImage(((ImageIcon) Utils
 				.getIcon(ResourceConstants.LYSTY_ICON)).getImage());
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				WindowManager.getInstance().unregisterWindow(LFrame.this);
-			}
-		});
 	}
 }

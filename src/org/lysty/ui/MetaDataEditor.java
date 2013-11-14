@@ -21,6 +21,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ProgressMonitor;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -75,7 +78,7 @@ public class MetaDataEditor extends LFrame {
 					}
 					label = new JLabel(name, Utils.getIcon(((File) value)
 							.isDirectory() ? ResourceConstants.FOLDER_ICON
-							: ResourceConstants.SONG_ICON), JLabel.LEFT);
+							: ResourceConstants.SONG_ICON), SwingConstants.LEFT);
 					label.setBorder(eBorder);
 					if (((File) value).isFile()) {
 						int index = songs.indexOf(new Song((File) value));
@@ -121,6 +124,7 @@ public class MetaDataEditor extends LFrame {
 						MetaDataEditor.this, "Committing Changes",
 						"Writing the changes to the DB", 0, changes.size());
 				new Thread() {
+					@Override
 					public void run() {
 						DBHandler.getInstance().applyModifications(changes,
 								monitor);
@@ -143,14 +147,14 @@ public class MetaDataEditor extends LFrame {
 
 		table.setPreferredScrollableViewportSize(new Dimension(1000, 500));
 		JPanel panel = new JPanel(new MigLayout());
-		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		panel.add(scroller, "north");
 		panel.add(btnCommit, "right align");
 		panel.add(btnCancel, "right align");
 		this.setContentPane(panel);
 
 		this.setVisible(true);
-		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		this.pack();
 	}
 
@@ -200,7 +204,7 @@ public class MetaDataEditor extends LFrame {
 		public void setCurrentFolder(File folder) {
 			this.currentFolder = folder;
 			if (folder == null) {
-				currentFiles = folder.listRoots();
+				currentFiles = File.listRoots();
 			} else {
 				currentFiles = folder.listFiles(fileFilter);
 			}

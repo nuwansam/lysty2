@@ -15,7 +15,6 @@ import javax.swing.JTable;
 
 import org.apache.log4j.Logger;
 import org.lysty.ui.exception.SongNotIndexedException;
-import org.lysty.ui.model.PlaylistProfileModel;
 
 public class TableDragDropListener implements DropTargetListener {
 	JTable table;
