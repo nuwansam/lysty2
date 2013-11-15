@@ -373,9 +373,14 @@ public class DBHandler {
 				try {
 					if (change.getFeature() == null) {
 						// song addition
-						insertSong(change.getSong());
-						logger.info("Inserted song: "
-								+ change.getSong().getFile());
+						if (!change.getSong().getFile().isDirectory()) { // only
+																			// add
+																			// actual
+																			// files
+							insertSong(change.getSong());
+							logger.info("Inserted song: "
+									+ change.getSong().getFile());
+						}
 					} else {
 						DBHandler.getInstance().setAttribute(change.getSong(),
 								change.getFeature(), change.getNewValue());

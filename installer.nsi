@@ -185,7 +185,7 @@ Section "Install Files"
   
   ; Put file there
   File /r "config"
-  File /r "lysty_lib"
+  File /r "lib"
   File /r "resources"
   File /r "sqls"
   File "lysty.jar"
@@ -202,8 +202,6 @@ Section "Install Files"
  SetOutPath $APPDATA\Lysty
   File /r "settings"
   File /r "plugins"
- SetOverwrite off
-  File /r "db"
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Lysty "Install_Dir" "$INSTDIR"

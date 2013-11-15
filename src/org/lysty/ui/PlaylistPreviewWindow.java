@@ -170,8 +170,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		});
 		table.setTableHeader(null);
 
-		layoutControls();
 		createMenu();
+		layoutControls();
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
@@ -568,7 +568,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				int choice = JOptionPane
 						.showOptionDialog(
 								this,
-								"There are no songs currently indexed in the Lysty DB. You need to run the indexer for InfiniPlay to work. Would you like to index now?",
+								"<html>There are no songs currently indexed in the Lysty DB.<br> You need to run the indexer for <i><b>InfiniPlay</b></i> to work.<br><br> Would you like to index songs now?</html>",
 								"Indexer Empty", JOptionPane.YES_NO_OPTION,
 								JOptionPane.QUESTION_MESSAGE, null, options,
 								JOptionPane.YES_OPTION);
@@ -589,13 +589,16 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void setTimer(int time) {
+		if (timer != null)
+			timer.cancel();
+
 		timer = new Timer();
 		timer.schedule(new TimerTask() {
 
 			@Override
 			public void run() {
 				try {
-					Utils.shutdown(0);
+					Utils.shutdown(1);
 				} catch (IOException e) {
 					logger.error("Error shutting down", e);
 				}
@@ -611,6 +614,11 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	public void addSongNext(Song song) {
 		int pos = 0;
+		if (list == null)
+			list = new ArrayList<Song>();
+		if (manuallyAdded == null)
+			manuallyAdded = new ArrayList<Song>();
+
 		if (list.isEmpty()) {
 			pos = 0;
 		} else {

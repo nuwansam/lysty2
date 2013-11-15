@@ -18,7 +18,7 @@ public class ApplicationInstanceManager {
 	private static ApplicationInstanceListener subListener;
 
 	/** Randomly chosen, but static, high socket number */
-	public static final int SINGLE_INSTANCE_NETWORK_SOCKET = 44431;
+	public static final int SINGLE_INSTANCE_NETWORK_SOCKET = 44432;
 
 	/** Must end with newline */
 	public static final String SINGLE_INSTANCE_SHARED_KEY = "$$NewInstance$$"

@@ -5,16 +5,24 @@
 	<property name="work.dir" value="/"/>
 	<property name="deploy.dir" value="../lysty_out"/>
     <target name="create_run_jar">
+		<path id="build-classpath">
+		<fileset dir="${work.dir}/lib">
+			<include name="*.jar"/>
+		</fileset>
+		</path>
+		<manifestclasspath property="lib.list" jarfile="${work.dir}/lysty.jar">
+			<classpath refid="build-classpath"/>
+		</manifestclasspath>
         <jar destfile="${deploy.dir}/lysty.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.lysty.core.Main"/>
-                <attribute name="Class-Path" value=". lysty_lib/jogg-0.0.5.jar lysty_lib/jorbis-0.0.12.jar lysty_lib/junit-3.8.2.jar lysty_lib/mp3plugin.jar lysty_lib/tritonus_jorbis-0.3.6.jar lysty_lib/tritonus_remaining-0.3.6.jar lysty_lib/tritonus_share-0.3.6.jar lysty_lib/xerces.jar lysty_lib/log4j-1.2.17.jar lysty_lib/mybatis-3.2.0.jar lysty_lib/h2-1.3.173.jar lysty_lib/filedrop.jar lysty_lib/nanoxml-2.2.1.jar lysty_lib/args4j.jar lysty_lib/castor-core.jar lysty_lib/castor-xml.jar lysty_lib/commons-logging.jar lysty_lib/ffmpeg-java.jar lysty_lib/lizzy.jar lysty_lib/jspf.core-1.0.2.jar lysty_lib/jspf.remote-1.0.2.jar lysty_lib/jspf.remote.discovery-1.0.2.jar lysty_lib/jspf.remote.ermi-1.0.2.jar lysty_lib/jspf.remote.javascript-1.0.2.jar lysty_lib/jspf.remote.json-1.0.2.jar lysty_lib/jspf.remote.lipermi-1.0.2.jar lysty_lib/jspf.remote.xmlrpc-1.0.2.jar lysty_lib/jspf.remote.xmlrpcdelight-1.0.2.jar lysty_lib/miglayout15-swing.jar lysty_lib/jl1.0.1.jar lysty_lib/jaudiotagger-2.0.1.jar lysty_lib/weblaf-1.25.jar lysty_lib/commons-io-2.4.jar lysty_lib/commons-lang3-3.1.jar"/>
+    			<attribute name="Class-Path" value="${lib.list}"/>
             </manifest>
             <fileset dir="${work.dir}/bin"/>
         </jar>
-        <delete dir="${deploy.dir}/lysty_lib"/>
-        <mkdir dir="${deploy.dir}/lysty_lib"/>
-        <copy todir="${deploy.dir}/lysty_lib"> 
+        <delete dir="${deploy.dir}/lib"/>
+        <mkdir dir="${deploy.dir}/lib"/>
+        <copy todir="${deploy.dir}/lib"> 
 			<fileset dir="${work.dir}/lib/"/> 
 		</copy>
 	</target>

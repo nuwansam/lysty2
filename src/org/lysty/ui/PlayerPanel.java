@@ -11,6 +11,8 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
+import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -19,7 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
-import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
@@ -278,33 +280,12 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				listener.setInfinyPlay(btnInfin.isSelected());
 			}
 		});
+		final JPopupMenu popup = new SleepMenu(listener);
 		btnSleep = new JButton(new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JPopupMenu popup = new JPopupMenu();
-				JMenuItem mnuHour = new JRadioButtonMenuItem(
-						new AbstractAction("1 Hour") {
 
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								listener.setTimer(1 * MINS_TO_MILIS);
-							}
-						});
-				JMenuItem mnuCancel = new JRadioButtonMenuItem(
-						new AbstractAction("No Sleep") {
-
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								listener.cancelTimer();
-							}
-						});
-
-				ButtonGroup group = new ButtonGroup();
-				group.add(mnuCancel);
-				group.add(mnuHour);
-				popup.add(mnuCancel);
-				popup.add(mnuHour);
 				popup.show(btnSleep, 0, 0);
 			}
 		});

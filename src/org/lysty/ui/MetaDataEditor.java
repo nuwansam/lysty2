@@ -14,12 +14,14 @@ import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
@@ -29,6 +31,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.Document;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -37,8 +40,11 @@ import org.lysty.dao.Song;
 import org.lysty.db.DBHandler;
 import org.lysty.util.Utils;
 
+import sas.samples.AutoCompleteDocument;
+
 public class MetaDataEditor extends LFrame {
 
+	private static final int ROW_HEIGHT = 25;
 	private static MetaDataEditor self = null;
 
 	public static MetaDataEditor getInstance() {
@@ -49,6 +55,7 @@ public class MetaDataEditor extends LFrame {
 	}
 
 	private List<Song> songs;
+	private JCheckBox chkOverwrite;
 
 	private MetaDataEditor(String title) {
 		super(title);
@@ -62,6 +69,7 @@ public class MetaDataEditor extends LFrame {
 		model.setCurrentFolder(null);
 		JTable table = new JTable();
 		JScrollPane scroller = new JScrollPane(table);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		table.setModel(model);
 		final Border eBorder = new EmptyBorder(5, 2, 5, 2);
 		table.setDefaultRenderer(File.class, new TableCellRenderer() {
@@ -93,6 +101,15 @@ public class MetaDataEditor extends LFrame {
 				return label;
 			}
 		});
+
+		JTextField txtField = new JTextField();
+		AutoCompletionService completionService = new AutoCompletionService();
+		model.setCompletionService(completionService);
+		completionService.createMapFromSongList(DBHandler.getInstance()
+				.getAllSongs());
+		table.setDefaultEditor(String.class, new LCellEditor(txtField,
+				completionService, features));
+
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -114,6 +131,8 @@ public class MetaDataEditor extends LFrame {
 		});
 		TableColumnModel cModel = table.getColumnModel();
 		cModel.getColumn(0).setMinWidth(100);
+
+		table.setRowHeight(ROW_HEIGHT);
 
 		JButton btnCommit = new JButton(new AbstractAction("Commit Changes") {
 
@@ -145,12 +164,31 @@ public class MetaDataEditor extends LFrame {
 			}
 		});
 
+		JLabel lblHelp = new JLabel(
+				"<html>You can set a value to all songs in a folder by specifing the value at the folder level. By default, it will not overwrite existing values. To overwrite, tick the checkbox below</html>");
+		// JLabel lblNote = new JLabel(
+		// "Note: Once the value is set for all songs recursively, the value entered at the folder level will disappear.");
+		chkOverwrite = new JCheckBox(new AbstractAction(
+				"Overwrite existing values if required") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				model.setDoOverwrite(chkOverwrite.isSelected());
+			}
+		});
+
 		table.setPreferredScrollableViewportSize(new Dimension(1000, 500));
-		JPanel panel = new JPanel(new MigLayout());
-		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		panel.add(scroller, "north");
-		panel.add(btnCommit, "right align");
-		panel.add(btnCancel, "right align");
+		JPanel panel = new JPanel(new MigLayout("", "[grow]", "[][][grow][]"));
+
+		JPanel controlPanel = new JPanel(new MigLayout("", "push[][]", "[]"));
+		controlPanel.add(btnCommit, "flowx,push,align right");
+		controlPanel.add(btnCancel, "flowx");
+
+		panel.add(lblHelp, "span");
+		// panel.add(lblNote, "span");
+		panel.add(chkOverwrite, "span");
+		panel.add(scroller, "span");
+		panel.add(controlPanel, "span,grow");
 		this.setContentPane(panel);
 
 		this.setVisible(true);
@@ -174,6 +212,16 @@ public class MetaDataEditor extends LFrame {
 		private FileFilter fileFilter;
 		private List<Modification> changeList;
 		private List<Song> songs;
+		private AutoCompletionService completionService;
+		private boolean doOverwrite;
+
+		public void setDoOverwrite(boolean doOverwrite) {
+			this.doOverwrite = doOverwrite;
+		}
+
+		public void setCompletionService(AutoCompletionService completionService) {
+			this.completionService = completionService;
+		}
 
 		public LTableModel(List<String> features, List<Song> songs) {
 			this.features = features;
@@ -296,6 +344,7 @@ public class MetaDataEditor extends LFrame {
 			} else {
 				setFeature(file, feature, val.toString());
 			}
+			completionService.addValueToMap(feature, val.toString());
 			fireTableDataChanged();
 		}
 
@@ -309,13 +358,13 @@ public class MetaDataEditor extends LFrame {
 					}
 				}
 			}
-			boolean isEmpty = false;
+			boolean shouldWriteValue = false;
 			Song song = getSong(file);
-			if (song == null
+			if (song == null || doOverwrite
 					|| !Utils.stringNotNullOrEmpty(song.getAttribute(feature)))
-				isEmpty = true;
+				shouldWriteValue = true;
 
-			if (isEmpty)
+			if (shouldWriteValue)
 				setFeature(file, feature, value);
 		}
 
@@ -351,4 +400,32 @@ public class MetaDataEditor extends LFrame {
 			}
 		}
 	}
+
+	class LCellEditor extends DefaultCellEditor {
+
+		private AutoCompletionService nameService;
+		private JTextField field;
+		private List<String> features;
+
+		public LCellEditor(JTextField txtField,
+				AutoCompletionService completionService, List<String> features) {
+			super(txtField);
+			this.field = txtField;
+			this.nameService = completionService;
+			this.features = features;
+		}
+
+		public Component getTableCellEditorComponent(JTable table,
+				Object value, boolean isSelected, int row, int column) {
+			// TODO Auto-generated method stub
+			Document autoCompleteDocument = new AutoCompleteDocument(
+					nameService, field);
+			nameService.setCurrentField(features.get(column - 1));
+			field.setDocument(autoCompleteDocument);
+
+			return field;
+		}
+
+	}
+
 }
