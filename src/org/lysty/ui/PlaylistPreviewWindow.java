@@ -95,6 +95,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			public void getNotification(PlayEvent event) {
 				if (event.getEventType() == PlayEvent.EventType.SONG_ENDED) {
 					// previous song has ended;
+					playerPanel.setState(PlayState.STOPPED);
 					playNextSong();
 				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
 					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
@@ -107,6 +108,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				}
 			}
 		};
+		init(new ArrayList<Song>(), false, null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
@@ -193,7 +195,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				try {
 					if (!file.getName().contains(".")) { // no ext provided.
 															// default to .m3u
-						file = new File(file.getName() + ".m3u");
+						file = new File(file.getAbsolutePath() + ".m3u");
 					}
 					boolean success = FileUtils.savePlaylist(list, file);
 				} catch (IOException e1) {
@@ -244,7 +246,9 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				PlaylistProfileWindow instance = PlaylistProfileWindow
 						.getInstance();
 				instance.setVisible(true);
-				instance.setLocationRelativeTo(PlaylistPreviewWindow.this);
+				instance.setLocation(PlaylistPreviewWindow.this.getX()
+						+ PlaylistPreviewWindow.this.getWidth(),
+						PlaylistPreviewWindow.this.getY());
 			}
 		});
 
@@ -340,7 +344,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			playerPanel.setState(PlayerPanel.PlayState.PLAYING);
 			play(0);
 		}
-		setSelectionProfile(profile);
+		if (profile != null)
+			setSelectionProfile(profile);
 	}
 
 	private void setSelectionProfile(SongSelectionProfile profile) {
@@ -510,6 +515,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void play(int playFrom) {
 		playSong(currentSongIndex, playFrom);
+		VolumeControl.setVolume(0.1f);
 	}
 
 	private void playSong(int index, int playFrom) {
@@ -614,8 +620,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	public void addSongNext(Song song) {
 		int pos = 0;
-		if (list == null)
+		if (list == null) {
 			list = new ArrayList<Song>();
+			currentSongIndex = 0;
+		}
 		if (manuallyAdded == null)
 			manuallyAdded = new ArrayList<Song>();
 

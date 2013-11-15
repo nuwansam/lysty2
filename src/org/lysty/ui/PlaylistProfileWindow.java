@@ -448,7 +448,8 @@ public class PlaylistProfileWindow extends LFrame implements
 
 	protected void loadSelProfile() {
 		JFileChooser chooser = new JFileChooser();
-		chooser.setFileFilter(FileUtils.selProfileFileFilter);
+		chooser.setFileFilter(new FileNameExtensionFilter("Partial Playlists",
+				FileUtils.PARTIAL_PLAYLIST_EXT));
 		int c = chooser.showOpenDialog(this);
 		if (c != JFileChooser.APPROVE_OPTION) {
 			return;
@@ -509,8 +510,8 @@ public class PlaylistProfileWindow extends LFrame implements
 			}
 			File file = chooser.getSelectedFile();
 			String fileName = file.toString();
-			if (!fileName.endsWith(FileUtils.PARTIAL_PLAYLIST_EXT))
-				fileName += FileUtils.PARTIAL_PLAYLIST_EXT;
+			if (!fileName.endsWith("." + FileUtils.PARTIAL_PLAYLIST_EXT))
+				fileName += "." + FileUtils.PARTIAL_PLAYLIST_EXT;
 			try {
 				FileUtils.writeXml(new File(fileName), selProfile.getXml());
 				playlistModel.saved();

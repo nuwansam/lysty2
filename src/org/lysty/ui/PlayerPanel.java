@@ -7,22 +7,20 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
-import javax.swing.JMenuItem;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JSlider;
 import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -65,6 +63,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 	private JButton btnFillSettings;
 	private PlaylistGenerator currentStrategy;
 	private StrategyConfiguration currentStrategySettings;
+	private JSlider volumeSlider;
 
 	/**
 	 * @return the currentStrategy
@@ -134,9 +133,9 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				TitledBorder.TOP, null, null));
 
 		add(panel, "cell 0 0,grow");
-		panel.setLayout(new MigLayout("", "[][][][][][]", "[][]"));
+		panel.setLayout(new MigLayout("", "[][][][][][][]", "[][]"));
 
-		panel.add(progress, "span,growx");
+		panel.add(progress, "flowx,span,growx");
 
 		panel.add(btnStartPause, "flowx");
 
@@ -148,6 +147,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 		panel.add(btnRandom, "flowx,push,align right");
 		panel.add(btnSleep, "flowx,alignx right");
+		panel.add(volumeSlider, "flowx,alignx right");
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
@@ -327,6 +327,17 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 			}
 		});
 
+		volumeSlider = new JSlider(SwingConstants.HORIZONTAL, 0, 100, 50);
+		volumeSlider.setToolTipText("Volume control");
+		volumeSlider.setMaximumSize(new Dimension(40, 20));
+
+		volumeSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				VolumeControl.setVolume((float) volumeSlider.getValue() / 100);
+			}
+		});
 		cmbStrategy.setSelectedIndex(0);
 		onStrategySelectionChange((PlaylistGenerator) cmbStrategy.getItemAt(0));
 
