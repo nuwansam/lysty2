@@ -7,14 +7,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
@@ -33,12 +31,12 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
-import org.lysty.extractors.MetaTagExtractor;
 import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.util.Utils;
 
 public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
+	private static final String FEATURE_DURATION = "duration";
 	private static final int DEFAULT_FRAMES_PER_SECS = 38;
 	private JProgressBar progress;
 	private JToggleButton btnStartPause;
@@ -172,9 +170,9 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 	public void setCurrentSong(Song song, int playFrom) {
 		try {
 			int duration = 0;
-			if (song.getAttribute(MetaTagExtractor.FEATURE_DURATION) != null) {
-				duration = Integer.parseInt(song
-						.getAttribute(MetaTagExtractor.FEATURE_DURATION));
+			if (song.getAttribute(FEATURE_DURATION) != null) {
+				duration = Integer
+						.parseInt(song.getAttribute(FEATURE_DURATION));
 			} else {
 				AudioFile audioFile = AudioFileIO.read(song.getFile());
 				duration = audioFile.getAudioHeader().getTrackLength();

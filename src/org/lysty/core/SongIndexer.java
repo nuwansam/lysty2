@@ -12,7 +12,6 @@ import org.lysty.dao.Song;
 import org.lysty.db.DBHandler;
 import org.lysty.exceptions.FeatureExtractionException;
 import org.lysty.extractors.ExtractSequencer;
-import org.lysty.extractors.MetaTagExtractor;
 
 public class SongIndexer {
 
@@ -118,7 +117,6 @@ public class SongIndexer {
 		}
 		updater.setSize(songList.size());
 		runExtractor(updater);
-		System.out.println("No attrib song count: " + MetaTagExtractor.cnt);
 	}
 
 	private static void init() {
