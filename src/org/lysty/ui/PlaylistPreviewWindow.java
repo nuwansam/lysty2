@@ -483,19 +483,18 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		}
 		profile.setSize(genListSize);
 		profile.setSizeType(SongSelectionProfile.SIZE_TYPE_LENGTH);
-		if (selProfile == null) {
-			selProfile = new SongSelectionProfile();
-			PlaylistGenerator strategy = playerPanel.getCurrentStrategy();
-			selProfile.setStrategy(strategy);
 
-			StrategyConfiguration currentStrategySettings = playerPanel
-					.getCurrentStrategySettings();
-			if (currentStrategySettings == null)
-				currentStrategySettings = StrategyFactory
-						.getDefaultOrLastSettings(strategy);
-			selProfile.setStrategyConfig(currentStrategySettings);
+		selProfile = new SongSelectionProfile();
+		PlaylistGenerator strategy = playerPanel.getCurrentStrategy();
+		selProfile.setStrategy(strategy);
 
-		}
+		StrategyConfiguration currentStrategySettings = playerPanel
+				.getCurrentStrategySettings();
+		if (currentStrategySettings == null)
+			currentStrategySettings = StrategyFactory
+					.getDefaultOrLastSettings(strategy);
+		selProfile.setStrategyConfig(currentStrategySettings);
+
 		profile.setStrategy(selProfile.getStrategy());
 		profile.setStrategyConfig(selProfile.getStrategyConfig());
 		int infiniPlayLastNtoCheck = DEFAULT_INFINIPLAY_LAST_N_TO_CHECK;
@@ -657,6 +656,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 								JOptionPane.YES_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
 					IndexerWindow.getInstance().setVisible(true);
+					IndexerWindow.getInstance().setLocationRelativeTo(this);
 				}
 			}
 		}

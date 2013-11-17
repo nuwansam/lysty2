@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
+import org.apache.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -44,6 +45,8 @@ public class MetaTagExtractor implements FeatureExtractor {
 	private static final String FEATURE_ISCOMPILATION = "is_compilation";
 
 	public static int cnt = 0;
+
+	private static Logger logger = Logger.getLogger(MetaTagExtractor.class);
 
 	@Override
 	public Song extract(Song song) throws FeatureExtractionException {
@@ -100,8 +103,20 @@ public class MetaTagExtractor implements FeatureExtractor {
 
 				try {
 					attrib = tag.getFirst(FieldKey.GENRE);
-					if (Utils.stringNotNullOrEmpty(attrib))
+					if (Utils.stringNotNullOrEmpty(attrib)) {
+						attrib = attrib.trim();
+						if (Utils.isNumber(attrib)) {
+							attrib = ID3TagV1Converter.getV2Tag(attrib);
+						} else if (attrib.contains("(") && attrib.contains(")")) {
+							attrib = attrib.substring(attrib.indexOf("(") + 1,
+									attrib.lastIndexOf(")"));
+							attrib = ID3TagV1Converter.getV2Tag(attrib);
+						}
+						if (attrib.toLowerCase().contains("unknown")) {
+							attrib = "unknown";
+						}
 						song.addAttribute(FEATURE_GENRE, attrib);
+					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

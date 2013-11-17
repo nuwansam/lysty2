@@ -198,6 +198,7 @@ public abstract class AbstractVoteMatchPriorityStrategy implements
 				return sortedList.get(i).song;
 			}
 		}
+		if(sortedList.isEmpty()) return null;
 		return sortedList.get(Math.max(0, endIndex - 1)).song;
 	}
 

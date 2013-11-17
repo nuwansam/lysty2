@@ -13,7 +13,8 @@ import org.lysty.util.FileUtils;
 import org.lysty.util.Utils;
 
 @PluginImplementation
-public class CumulativeMetaMatchStrategy extends AbstractVoteMatchPriorityStrategy {
+public class CumulativeMetaMatchStrategy extends
+		AbstractVoteMatchPriorityStrategy {
 
 	public static final String ALBUM_VOTE_WEIGHT = "album_weight";
 	public static final String RELEASE_DATE_VOTE_WEIGHT = "release_date_weight";
@@ -126,8 +127,15 @@ public class CumulativeMetaMatchStrategy extends AbstractVoteMatchPriorityStrate
 				releaseDateW, EXACT_MATCH);
 		votes += getVotesForAttribute(song, candidate, FEATURE_ARTIST, artistW,
 				CONTAINS_MATCH);
-		votes += getVotesForAttribute(song, candidate, FEATURE_GENRE, genreW,
-				EXACT_MATCH);
+
+		// for genre, do not consider matches if either is other
+		String songGenreStr;
+		songGenreStr = song.getAttribute(FEATURE_GENRE);
+		if (!"other".equalsIgnoreCase(songGenreStr)) {
+			votes += getVotesForAttribute(song, candidate, FEATURE_GENRE,
+					genreW, CONTAINS_MATCH);
+		}
+
 		votes += getVotesForAttribute(song, candidate, FEATURE_COMPOSER,
 				composerW, CONTAINS_MATCH);
 		votes += getVotesForAttribute(song, candidate, FEATURE_LANGUAGE, langW,
