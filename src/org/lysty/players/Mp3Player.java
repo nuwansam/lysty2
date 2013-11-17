@@ -26,6 +26,7 @@ public class Mp3Player extends AbstractPlayer {
 		// TODO Auto-generated method stub
 		ArrayList<String> list = new ArrayList<String>();
 		list.add("mp3");
+		list.add("mp4");
 		return list;
 	}
 
@@ -86,11 +87,6 @@ public class Mp3Player extends AbstractPlayer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public void setVolume(int volume) {
-
 	}
 
 	@Override

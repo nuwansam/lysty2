@@ -32,6 +32,9 @@ public class SongPlayer {
 			e.printStackTrace();
 		}
 		player = PlayerManager.getInstance().getPlayer(song.getFileType());
+		if (player == null) {
+			player = PlayerManager.getInstance().getBackupPlayer();
+		}
 		player.setPlaybackListener(playbackListener);
 		Thread thread = new SongPlayThread(song, playFrom,
 				new ExceptionListener() {

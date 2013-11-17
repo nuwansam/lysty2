@@ -13,6 +13,13 @@ Name "Lysty Installer"
 ; The file to write
 OutFile "Lysty-Install.exe"
 
+ !include "MUI.nsh"
+!include nsDialogs.nsh
+ !addplugindir .
+ !define JRE_VERSION "1.6"
+ !define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=52252"
+ !include "JREDyna_Inetc.nsh"
+ 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Lysty
 
@@ -168,8 +175,9 @@ FunctionEnd
 
 Page components
 Page directory
+!insertmacro CUSTOM_PAGE_JREINFO
 Page instfiles
-
+ 
 UninstPage uninstConfirm
 UninstPage instfiles
 
@@ -184,12 +192,12 @@ Section "Install Files"
   SetOutPath $INSTDIR
   
   ; Put file there
-  File /r "config"
-  File /r "lib"
-  File /r "resources"
-  File /r "sqls"
-  File "lysty.jar"
-  File "lysty.exe"
+  File /r "..\config"
+  File /r "..\lib"
+  File /r "..\resources"
+  File /r "..\sqls"
+  File "..\lysty.jar"
+  File "..\lysty.exe"
   
   ${StrRep} '$0' '$APPDATA' '\' '/'
   ; write the db,logs,settings folder paths to the config
@@ -200,8 +208,8 @@ Section "Install Files"
  ${WriteLineToFile} `$INSTDIR\config\config.properties` `settings_file=$0/Lysty/settings/settings.properties`
   
  SetOutPath $APPDATA\Lysty
-  File /r "settings"
-  File /r "plugins"
+  File /r "..\settings"
+  File /r "..\plugins"
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Lysty "Install_Dir" "$INSTDIR"
@@ -238,7 +246,8 @@ WriteRegStr HKCR .ppl "" "lysty.ppl"
 	
  StrCpy $R0 ".mp3"
    Call RegisterExtension
-	
+
+ call DownloadAndInstallJREIfNecessary   
  SectionEnd
 
 ; Optional section (can be disabled by the user)

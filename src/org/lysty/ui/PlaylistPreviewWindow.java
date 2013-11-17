@@ -86,6 +86,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
+				updateSettings();
 				AppSettingsManager.writeAppSettings();
 			}
 		});
@@ -110,6 +111,20 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		};
 		init(new ArrayList<Song>(), false, null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+	private void loadSettings() {
+		String xStr = AppSettingsManager.getProperty(AppSettingsManager.LS_X);
+		String yStr = AppSettingsManager.getProperty(AppSettingsManager.LS_Y);
+		if (Utils.isNumber(xStr) && Utils.isNumber(yStr)) {
+			setLocation(Integer.parseInt(xStr), Integer.parseInt(yStr));
+		}
+	}
+
+	protected void updateSettings() {
+		AppSettingsManager.setProperty(AppSettingsManager.LS_X, getX() + "");
+		AppSettingsManager.setProperty(AppSettingsManager.LS_Y, getY() + "");
+		playerPanel.updateSettings();
 	}
 
 	private void createUI() {
@@ -138,7 +153,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 					currentSongIndex = row;
 					stop();
 					playerPanel.setState(PlayerPanel.PlayState.PLAYING);
-					playerPanel.setCurrentProgress(0);
+					playerPanel.setCurrentSongProgress(0);
 					play(0);
 				}
 			}
@@ -173,8 +188,14 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		table.setTableHeader(null);
 
 		createMenu();
+		loadSettings();
 		layoutControls();
+		setToolTips();
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	}
+
+	private void setToolTips() {
+		playerPanel.setToolTips();
 	}
 
 	private void createMenu() {
@@ -217,6 +238,23 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 						model.fireTableDataChanged();
 					}
 				});
+
+		JMenuItem mnuLoadPlaylist = new JMenuItem(new AbstractAction(
+				"Load Playlist") {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.addChoosableFileFilter(new FileNameExtensionFilter(
+						".m3u", "m3u"));
+				int c = chooser.showOpenDialog(PlaylistPreviewWindow.this);
+				if (c != JFileChooser.APPROVE_OPTION) {
+					return;
+				}
+				File file = chooser.getSelectedFile();
+				loadFromPlayList(file);
+			}
+		});
 
 		JMenuItem mnuExit = new JMenuItem(new AbstractAction("Exit") {
 
@@ -288,6 +326,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		mnuTools.add(mnuToolsSettings);
 
 		mnuFile.add(mnuClear);
+		mnuFile.add(mnuLoadPlaylist);
 		mnuFile.addSeparator();
 		mnuFile.add(mnuFileSave);
 		mnuFile.add(mnuExport);
@@ -297,6 +336,12 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		menu.add(mnuFile);
 		menu.add(mnuTools);
 		this.setJMenuBar(menu);
+	}
+
+	protected void loadFromPlayList(File file) {
+		List<Song> llist = FileUtils.loadPlaylist(file);
+		if (llist != null)
+			model.setList(llist);
 	}
 
 	protected void copyFiles() {
@@ -367,9 +412,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		this.setContentPane(panel);
 		this.setVisible(true);
 		this.pack();
-		this.setSize(320, 400);
-		playerPanel.setInfiniPlay(AppSettingsManager
-				.getPropertyAsBoolean(AppSettingsManager.LS_INFINI_PLAY));
+		this.setSize(360, 400);
+		playerPanel.loadLatestSettings();
 	}
 
 	public PlayState getCurrentState() {
@@ -386,6 +430,16 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 					newSongList = StrategyFactory.getPlaylistByStrategy(
 							selProfile.getStrategy(), selProfile,
 							selProfile.getStrategyConfig(), false, false, list);
+					if (newSongList.isEmpty()) {
+						// couldn't generate songs. inform the user to try other
+						// strategies and update meta data
+						JOptionPane
+								.showMessageDialog(
+										this,
+										"<html>Oops! Lysty was unable to find more songs to go with the playlist. <br>You can try the following:<br><br> 1). Use a different fill method. <br><br> 2). This could be due to inadequate metadata for songs. <br>You can fix it by choosing <i>tools->Edit Metadata</i><br><br> 3). Make sure songs are indexed. You can run the indexer by choosing <i>tools->index</i><br><br></html>",
+										"Unable to generate more songs",
+										JOptionPane.INFORMATION_MESSAGE);
+					}
 					for (Song s : newSongList) {
 						model.addSong(s.getFile(), model.getList().size());
 					}
@@ -404,6 +458,20 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		}
 	}
 
+	/**
+	 * Algorithm: Consider the "lastNtoCheck" songs in the current playlist.
+	 * take it as baselist. create a partials list that is of length
+	 * Math.max(lastNtoCheck,genListSize) add the manually added songs in the
+	 * lastNtoCheck to the partials first. the position those songs are added to
+	 * are such that the last manually added song goes to the 0th position in
+	 * the partials (i.e: rotate the baselist such that last manually added
+	 * comes to 0th pos) If less than 50% of the genlist size is filled, add
+	 * more randomly chosen songs from the baselist. do the same rotation for
+	 * their positions as well. Take partials.sublist(0,genlistsize) and take
+	 * that as the relative position map to pass to the fill strategy
+	 * 
+	 * @return
+	 */
 	private SongSelectionProfile generateNewProfile() {
 		SongSelectionProfile profile = new SongSelectionProfile();
 
@@ -436,17 +504,31 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		if (Utils.stringNotNullOrEmpty(infiniPlayLastNStr)) {
 			infiniPlayLastNtoCheck = Integer.parseInt(infiniPlayLastNStr);
 		}
+
 		List<Song> baseList = list.subList(
 				Math.max(0, list.size() - infiniPlayLastNtoCheck), list.size());
-		List<Song> partials = new ArrayList<Song>(genListSize);
-		for (int i = 0; i < genListSize; i++) {
+		int partialsLen = Math.max(infiniPlayLastNtoCheck, genListSize);
+		List<Song> partials = new ArrayList<Song>(partialsLen);
+
+		for (int i = 0; i < partialsLen; i++) {
 			partials.add(null); // nullfill
 		}
 		int addedCnt = 0;
+		int distFromEndToLastManualAdd = 0;
+		for (int i = baseList.size() - 1; i >= 0; i--) {// find dist to last
+														// manually added song
+														// from the end of list
+			if (manuallyAdded.contains(baseList.get(i))) {
+				distFromEndToLastManualAdd = baseList.size() - i;
+				break;
+			}
+		}
 		for (int i = 0; i < baseList.size(); i++) {
 			if (manuallyAdded.contains(baseList.get(i))) { // add the manually
 															// addeds
-				partials.set(i, baseList.get(i));
+				partials.set(
+						(i + distFromEndToLastManualAdd) % baseList.size(),
+						baseList.get(i));
 				addedCnt++;
 			}
 		}
@@ -459,17 +541,13 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			if (partials.contains(baseList.get(random))) {
 				continue;
 			} else {
-				partials.set(Math.min(random, partials.size() - 1),
+				partials.set(
+						(random + distFromEndToLastManualAdd) % baseList.size(),
 						baseList.get(random));
 				addedCnt++;
 			}
 		}
-		if (addedCnt == 0) {
-			// no songs added at all. desperate times!. consider even the
-			// manually skipped songs
-
-		}
-		profile.setRelPosMap(partials);
+		profile.setRelPosMap(partials.subList(0, genListSize));
 		return profile;
 	}
 
@@ -515,7 +593,6 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void play(int playFrom) {
 		playSong(currentSongIndex, playFrom);
-		VolumeControl.setVolume(0.1f);
 	}
 
 	private void playSong(int index, int playFrom) {
@@ -545,7 +622,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void stop() {
 		playerPanel.setState(PlayerPanel.PlayState.STOPPED);
-		playerPanel.setCurrentProgress(0);
+		playerPanel.setCurrentSongProgress(0);
 		SongPlayer.getInstance().stop();
 	}
 
@@ -580,8 +657,6 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 								JOptionPane.YES_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
 					IndexerWindow.getInstance().setVisible(true);
-				} else {
-					playerPanel.setInfiniPlay(false);
 				}
 			}
 		}

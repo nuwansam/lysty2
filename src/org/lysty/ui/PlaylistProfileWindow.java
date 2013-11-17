@@ -1,6 +1,7 @@
 package org.lysty.ui;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
@@ -78,6 +79,7 @@ public class PlaylistProfileWindow extends LFrame implements
 	private JButton btnFillPlay;
 	private JButton btnSettings;
 	private Logger logger = Logger.getLogger(PlaylistProfileWindow.class);
+	private JLabel lblHelp;
 
 	private static PlaylistProfileWindow self = null;
 
@@ -113,25 +115,23 @@ public class PlaylistProfileWindow extends LFrame implements
 	private void loadLastSettings() {
 		spnSize.setValue(Integer.parseInt(AppSettingsManager.getProperty(
 				AppSettingsManager.LS_PPL_SIZE, DEF_PLAYLIST_SIZE + "")));
-		String lsFillStrategy = AppSettingsManager
+		String strategyClass = AppSettingsManager
 				.getProperty(AppSettingsManager.LS_FILL_STRATEGY);
-		PlaylistGenerator strategy;
-		for (int i = 0; i < cmbStrategy.getItemCount(); i++) {
-			strategy = (PlaylistGenerator) cmbStrategy.getItemAt(i);
-			if (strategy.getStrategyDisplayName().equalsIgnoreCase(
-					lsFillStrategy)) {
-				cmbStrategy.setSelectedIndex(i);
-				break;
-			}
+		if (Utils.stringNotNullOrEmpty(strategyClass)) {
+			PlaylistGenerator strategy = StrategyFactory
+					.getStrategyByClassName(strategyClass);
+			if (strategy != null)
+				cmbStrategy.setSelectedItem(strategy);
 		}
+
 		chkIsCircular.setSelected(AppSettingsManager
 				.getPropertyAsBoolean(AppSettingsManager.LS_IS_CIRC_PPL));
 	}
 
 	private void writeSettings() {
 		AppSettingsManager.setProperty(AppSettingsManager.LS_FILL_STRATEGY,
-				((PlaylistGenerator) cmbStrategy.getSelectedItem())
-						.getStrategyDisplayName());
+				((PlaylistGenerator) cmbStrategy.getSelectedItem()).getClass()
+						.getName());
 		AppSettingsManager.setProperty(AppSettingsManager.LS_IS_CIRC_PPL,
 				chkIsCircular.isSelected() ? "true" : "false");
 		AppSettingsManager.setProperty(AppSettingsManager.LS_PPL_SIZE,
@@ -205,9 +205,19 @@ public class PlaylistProfileWindow extends LFrame implements
 		this.setJMenuBar(createMenu());
 		// Add the label to the content
 
+		lblHelp = new JLabel(
+				"<html><i>Drag and drop songs to desired positions in the list</i></html>");
 		// Show the frame
+		setToolTips();
 		layoutUI();
 		this.setVisible(true);
+	}
+
+	private void setToolTips() {
+		chkIsCircular.setToolTipText("create cirular playlist");
+		cmbStrategy
+				.setToolTipText("Fill strategy to use for creating the playlist");
+		table.setToolTipText("Drag and drop songs to the desired positions in this table");
 	}
 
 	private void layoutUI() {
@@ -229,10 +239,11 @@ public class PlaylistProfileWindow extends LFrame implements
 		pnlStrategy.add(cmbStrategy, "grow");
 		pnlStrategy.add(btnSettings);
 
-		JPanel panel = new JPanel(new MigLayout("", "[grow]", "[][][grow]"));
+		JPanel panel = new JPanel(new MigLayout("", "[grow]", "[][][][grow]"));
 		panel.add(pnlControl, "cell 0 0, grow");
 		panel.add(pnlStrategy, "cell 0 1,grow");
-		panel.add(scroller, "cell 0 2,grow");
+		panel.add(lblHelp, "cell 0 2,center,span");
+		panel.add(scroller, "cell 0 3,grow");
 
 		setContentPane(panel);
 		pack();

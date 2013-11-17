@@ -61,10 +61,10 @@ public class Main {
 	private static void init() {
 		// PropertyManager.loadProperties();
 		DBHandler.getInstance();
-		StrategyFactory.loadStrategies();
-		logger.info("strategies loaded.");
 		ExtractorManager.loadExtractors();
 		logger.info("extractors loaded.");
+		StrategyFactory.loadStrategies();
+		logger.info("strategies loaded.");
 		PlayerManager.getInstance();
 		AppSettingsManager.loadProperties(new File(PropertyManager
 				.getProperty(PropertyManager.SETTINGS_FILE)));
@@ -143,6 +143,9 @@ public class Main {
 					songList.add(song);
 					win.init(songList, true, null);
 				}
+			} else if (FileUtils.isSupportedPlaylistFile(file)) {
+				PlaylistPreviewWindow win = PlaylistPreviewWindow.getInstance();
+				win.init(FileUtils.loadPlaylist(file), true, null);
 			} else {
 				// unsupported file format
 				logger.info("Unsupported File: " + file.getAbsolutePath());

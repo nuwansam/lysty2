@@ -39,7 +39,11 @@ public class PlayerManager {
 	}
 
 	public AbstractPlayer getPlayer(String format) {
-		return playerMap.get(format);
+		return playerMap.get(format.toLowerCase());
+	}
+
+	public AbstractPlayer getBackupPlayer() {
+		return playerMap.get("mp3");
 	}
 
 }

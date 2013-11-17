@@ -40,7 +40,7 @@ public class RandomStrategy extends AbstractVoteMatchStrategy {
 		File candidateFile = candidate.getFile();
 		File songParentFile = songFile;
 		int votes = 0;
-		for (int i = 1; i < commonFolderHeight; i++) {
+		for (int i = 1; i <= commonFolderHeight; i++) {
 			songParentFile = songParentFile.getParentFile();
 			if (songParentFile == null)
 				break;

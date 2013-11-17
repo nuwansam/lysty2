@@ -43,11 +43,14 @@
 			<fileset dir="${work.dir}/settings"/>
 		</copy>
 		<copy file="${work.dir}/run.bat" tofile="${deploy.dir}/run.bat"/>
-		<copy file="${work.dir}/installer.nsi" tofile="${deploy.dir}/installer.nsi"/>
-		<copy file="${work.dir}/lysty_exe.xml" tofile="${deploy.dir}/lysty_exe.xml"/>
-	</target>
+		</target>
 	
 	<target name="clean">
 	<delete dir="${deploy.dir}"/>
+	</target>
+	<target name="windeploy" depends="deploy">
+		<copy todir="${deploy.dir}/win">
+			<fileset dir="${work.dir}/win"/>
+		</copy>
 	</target>
 </project>

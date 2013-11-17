@@ -37,6 +37,11 @@ public class AppSettingsManager {
 																	// cirular
 																	// or not
 
+	public static final String LS_VOLUME_LEVEL = "ls_volume_level";
+
+	public static final String LS_X = "ls_x";
+	public static final String LS_Y = "ls_y";
+
 	static Properties properties;
 	private static File file;
 	private static Logger logger = Logger.getLogger(AppSettingsManager.class);

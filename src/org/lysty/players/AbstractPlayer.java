@@ -20,8 +20,6 @@ public abstract class AbstractPlayer {
 
 	public abstract void stop();
 
-	public abstract void setVolume(int volume);
-
 	public void setPlaybackListener(PlaybackListener listener) {
 		playbackListener = listener;
 	}

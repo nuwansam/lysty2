@@ -13,6 +13,7 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
@@ -26,8 +27,10 @@ import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.apache.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.lysty.core.AppSettingsManager;
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
@@ -62,6 +65,8 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 	private PlaylistGenerator currentStrategy;
 	private StrategyConfiguration currentStrategySettings;
 	private JSlider volumeSlider;
+	private JLabel lblTime;
+	private Logger logger = Logger.getLogger(PlayerPanel.class);
 
 	/**
 	 * @return the currentStrategy
@@ -108,7 +113,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 			btnStartPause.setSelected(false);
 			if (timer != null)
 				timer.stop();
-			progress.setValue(0);
+			setCurrentSongProgress(0);
 		}
 	}
 
@@ -123,6 +128,23 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		setState(PlayState.STOPPED);
 	}
 
+	public void loadLatestSettings() {
+		String strategyClass = AppSettingsManager
+				.getProperty(AppSettingsManager.LS_FILL_STRATEGY);
+		if (Utils.stringNotNullOrEmpty(strategyClass)) {
+			PlaylistGenerator strategy = StrategyFactory
+					.getStrategyByClassName(strategyClass);
+			if (strategy != null)
+				cmbStrategy.setSelectedItem(strategy);
+		}
+		btnInfin.setSelected(AppSettingsManager
+				.getPropertyAsBoolean(AppSettingsManager.LS_INFINI_PLAY));
+		listener.setInfinyPlay(btnInfin.isSelected());
+		volumeSlider.setValue(Integer.parseInt(AppSettingsManager.getProperty(
+				AppSettingsManager.LS_VOLUME_LEVEL, "90")));
+
+	}
+
 	private void layoutControls() {
 		setLayout(new MigLayout("", "[grow]", "[][grow]"));
 
@@ -133,7 +155,8 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		add(panel, "cell 0 0,grow");
 		panel.setLayout(new MigLayout("", "[][][][][][][]", "[][]"));
 
-		panel.add(progress, "flowx,span,growx");
+		panel.add(progress, "flowx,spanx 6,growx");
+		panel.add(lblTime, "flowx,align right,span");
 
 		panel.add(btnStartPause, "flowx");
 
@@ -143,9 +166,9 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 		panel.add(btnNext, "flowx");
 
-		panel.add(btnRandom, "flowx,push,align right");
-		panel.add(btnSleep, "flowx,alignx right");
-		panel.add(volumeSlider, "flowx,alignx right");
+		panel.add(volumeSlider, "flowx,push,span 2,alignx right");
+		panel.add(btnRandom, "flowx,push,align right,split 2,gapleft 5");
+		panel.add(btnSleep, "flowx,push,alignx right");
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new TitledBorder(null, "", TitledBorder.LEADING,
@@ -174,12 +197,18 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				duration = Integer
 						.parseInt(song.getAttribute(FEATURE_DURATION));
 			} else {
-				AudioFile audioFile = AudioFileIO.read(song.getFile());
-				duration = audioFile.getAudioHeader().getTrackLength();
+				try {
+					AudioFile audioFile = AudioFileIO.read(song.getFile());
+					duration = audioFile.getAudioHeader().getTrackLength();
+				} catch (Exception e) {
+					logger.error("Couldn't extract audio duraion for song: "
+							+ song.getFile().getName(), e);
+					duration = 0;
+				}
 			}
 			final int fDuration = duration;
 			if (playFrom == 0) {
-				progress.setValue(0);
+				setCurrentSongProgress(0);
 				progress.setMaximum(duration);
 				progress.setString("");
 				progress.setStringPainted(true);
@@ -191,7 +220,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				@Override
 				public void actionPerformed(ActionEvent evt) {
 					// ...Update the progress bar...
-					progress.setValue(progress.getValue() + 1);
+					setCurrentSongProgress(progress.getValue() + 1);
 					if (progress.getValue() >= fDuration) {
 						timer.stop();
 					}
@@ -215,11 +244,12 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				int cW = e.getX();
 				int newProgress = progress.getMaximum() * cW / tW;
 				listener.play((int) newProgress * DEFAULT_FRAMES_PER_SECS);
-				progress.setValue(newProgress);
+				setCurrentSongProgress(newProgress);
+
 			}
 		});
-
-		// progress.setBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray));
+		progress.setMaximum(0);
+		lblTime = new JLabel("-.-/-.-");
 
 		btnStartPause = new JToggleButton();
 		btnStartPause.setIcon(Utils.getIcon(ResourceConstants.PLAY_ICON));
@@ -271,10 +301,10 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 		btnInfin = new JToggleButton(
 				Utils.getIcon(ResourceConstants.INFINI_ICON));
-		btnInfin.addChangeListener(new ChangeListener() {
+		btnInfin.addActionListener(new ActionListener() {
 
 			@Override
-			public void stateChanged(ChangeEvent e) {
+			public void actionPerformed(ActionEvent arg0) {
 				listener.setInfinyPlay(btnInfin.isSelected());
 			}
 		});
@@ -327,7 +357,9 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 		volumeSlider = new JSlider(SwingConstants.HORIZONTAL, 0, 100, 50);
 		volumeSlider.setToolTipText("Volume control");
-		volumeSlider.setMaximumSize(new Dimension(40, 20));
+		volumeSlider.setPreferredSize(new Dimension(60, 10));
+		// volumeSlider.setMaximumSize(new Dimension(60, 20));
+		// volumeSlider.setMinimumSize(new Dimension(60, 5));
 
 		volumeSlider.addChangeListener(new ChangeListener() {
 
@@ -348,8 +380,16 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 
 	}
 
-	public void setCurrentProgress(int val) {
+	public void setCurrentSongProgress(int val) {
 		progress.setValue(val);
+		lblTime.setText(getTimeFormattedString(val) + "/"
+				+ getTimeFormattedString(progress.getMaximum()));
+	}
+
+	private String getTimeFormattedString(int val) {
+		int mins = val / 60;
+		int secs = val % 60;
+		return mins + "." + ((secs < 10) ? "0" + secs : secs);
 	}
 
 	public void setPausedOnFrame(int frame) {
@@ -374,6 +414,29 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 	public void setStrategy(PlaylistGenerator strategy) {
 		currentStrategy = strategy;
 		cmbStrategy.setSelectedItem(currentStrategy);
+	}
+
+	public void updateSettings() {
+		AppSettingsManager.setProperty(AppSettingsManager.LS_FILL_STRATEGY,
+				((PlaylistGenerator) cmbStrategy.getSelectedItem()).getClass()
+						.getName());
+		AppSettingsManager.setProperty(AppSettingsManager.LS_INFINI_PLAY,
+				btnInfin.isSelected() ? "true" : "false");
+		AppSettingsManager.setProperty(AppSettingsManager.LS_VOLUME_LEVEL,
+				volumeSlider.getValue() + "");
+	}
+
+	public void setToolTips() {
+		btnStartPause.setToolTipText("Start/Pause");
+		btnStop.setToolTipText("Stop");
+		btnPrev.setToolTipText("Previous Song");
+		btnNext.setToolTipText("Next Song");
+		btnRandom.setToolTipText("Randomize");
+		btnSleep.setToolTipText("Sleep");
+		cmbStrategy
+				.setToolTipText("Fill strategy to use to generate the next songs for the playlist");
+		btnFillSettings.setToolTipText("Settings for the fill strategy");
+		btnInfin.setToolTipText("InfiniPlay Mode");
 	}
 
 }

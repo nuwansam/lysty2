@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
+import org.lysty.dao.Song;
 
 public class Utils {
 
@@ -102,4 +103,5 @@ public class Utils {
 		Runtime.getRuntime().exec(shutdownCommand);
 		return true;
 	}
+
 }
