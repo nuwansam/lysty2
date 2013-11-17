@@ -143,7 +143,7 @@ public class CumulativeMetaMatchStrategy extends
 		votes += getVotesForAttribute(song, candidate, FEATURE_MOOD, moodW,
 				EXACT_MATCH);
 
-		if (folderDist > commonFolderHeight) {
+		if (folderDist <= commonFolderHeight) {
 			votes += folderW / folderDist;
 		}
 		return votes;
