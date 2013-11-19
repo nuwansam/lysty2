@@ -1,7 +1,6 @@
 package org.lysty.ui;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
@@ -48,7 +47,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.log4j.Logger;
 import org.lysty.core.AppSettingsManager;
 import org.lysty.core.PlaylistGenerator;
-import org.lysty.core.PropertyManager;
 import org.lysty.core.StrategyFactory;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
@@ -63,7 +61,7 @@ public class PlaylistProfileWindow extends LFrame implements
 
 	private static final String SIZE_TYPE_LENGTH = "Songs";
 	private static final String SIZE_TYPE_TIME = "Minutes";
-	private static final int DEF_PLAYLIST_SIZE = 10;
+	private static final int DEF_PLAYLIST_LEN = 10;
 	JTable table;
 	PlaylistProfileModel playlistModel;
 	protected JPopupMenu tablePopup;
@@ -114,7 +112,7 @@ public class PlaylistProfileWindow extends LFrame implements
 	 */
 	private void loadLastSettings() {
 		spnSize.setValue(Integer.parseInt(AppSettingsManager.getProperty(
-				AppSettingsManager.LS_PPL_SIZE, DEF_PLAYLIST_SIZE + "")));
+				AppSettingsManager.LS_PPL_SIZE, DEF_PLAYLIST_LEN + "")));
 		String strategyClass = AppSettingsManager
 				.getProperty(AppSettingsManager.LS_FILL_STRATEGY);
 		if (Utils.stringNotNullOrEmpty(strategyClass)) {
@@ -152,9 +150,7 @@ public class PlaylistProfileWindow extends LFrame implements
 		TableDragDropListener myDragDropListener = new TableDragDropListener(
 				table);
 
-		playlistModel = new PlaylistProfileModel(
-				Integer.parseInt(PropertyManager
-						.getProperty(PropertyManager.DEF_PLAYLIST_LEN)));
+		playlistModel = new PlaylistProfileModel(DEF_PLAYLIST_LEN);
 		table.setModel(playlistModel);
 		table.setDragEnabled(true);
 		table.setDropMode(DropMode.INSERT_ROWS);
@@ -264,8 +260,7 @@ public class PlaylistProfileWindow extends LFrame implements
 		cmbSizeType.addItem(SIZE_TYPE_LENGTH);
 		// cmbSizeType.addItem(SIZE_TYPE_TIME); //not supported yet
 
-		int defLen = Integer.parseInt(PropertyManager
-				.getProperty(PropertyManager.DEF_PLAYLIST_LEN));
+		int defLen = DEF_PLAYLIST_LEN;
 		spnSize.setValue(defLen);
 		spnSize.addFocusListener(new FocusListener() {
 
@@ -487,9 +482,7 @@ public class PlaylistProfileWindow extends LFrame implements
 	 * New Selection profile
 	 */
 	protected void newSelectionProfile() {
-		playlistModel = new PlaylistProfileModel(
-				Integer.parseInt(PropertyManager
-						.getProperty(PropertyManager.DEF_PLAYLIST_LEN)));
+		playlistModel = new PlaylistProfileModel(DEF_PLAYLIST_LEN);
 		table.setModel(playlistModel);
 	}
 

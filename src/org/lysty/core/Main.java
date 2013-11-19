@@ -31,9 +31,8 @@ public class Main {
 	static Logger logger = Logger.getLogger(Main.class);
 
 	public static void main(String[] args) {
-		PropertyManager.loadProperties();
-		System.setProperty("lysty_logs_folder_path",
-				PropertyManager.getProperty(PropertyManager.LOGS_FOLDER));
+		System.setProperty("lysty_logs_folder_path", Utils
+				.getAppDirectoryFolder(Utils.LOGS_FOLDER).getAbsolutePath());
 		DOMConfigurator.configure("config/log4j_config.xml");
 		boolean success = ApplicationInstanceManager.registerInstance(args);
 		if (!success) {
@@ -66,8 +65,8 @@ public class Main {
 		StrategyFactory.loadStrategies();
 		logger.info("strategies loaded.");
 		PlayerManager.getInstance();
-		AppSettingsManager.loadProperties(new File(PropertyManager
-				.getProperty(PropertyManager.SETTINGS_FILE)));
+		AppSettingsManager.loadProperties(Utils
+				.getAppDirectoryFolder(Utils.SETTINGSFILE));
 		try {
 			UIManager.setLookAndFeel("com.alee.laf.WebLookAndFeel");
 		} catch (Exception e) {

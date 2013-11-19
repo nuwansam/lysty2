@@ -27,11 +27,11 @@
 		</copy>
 	</target>
 	<target name="deploy" depends="create_run_jar">
-		<copy todir="${deploy.dir}/config">
-			<fileset dir="${work.dir}/config"/>
-		</copy>
 		<copy todir="${deploy.dir}/plugins">
 			<fileset dir="${work.dir}/plugins"/>
+		</copy>
+		<copy todir="${deploy.dir}/config">
+			<fileset dir="${work.dir}/config"/>
 		</copy>
 		<copy todir="${deploy.dir}/resources">
 			<fileset dir="${work.dir}/resources"/>
@@ -39,10 +39,8 @@
 		<copy todir="${deploy.dir}/sqls">
 			<fileset dir="${work.dir}/sqls"/>
 		</copy>
-		<copy todir="${deploy.dir}/settings">
-			<fileset dir="${work.dir}/settings"/>
-		</copy>
 		<copy file="${work.dir}/run.bat" tofile="${deploy.dir}/run.bat"/>
+		<copy file="${work.dir}/settings.properties" tofile="${deploy.dir}/settings.properties"/>
 		</target>
 	
 	<target name="clean">

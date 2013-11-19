@@ -24,14 +24,17 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.log4j.Logger;
 import org.h2.tools.RunScript;
-import org.lysty.core.PropertyManager;
 import org.lysty.dao.Song;
 import org.lysty.extractors.FeatureExtractor;
 import org.lysty.ui.Modification;
+import org.lysty.util.Utils;
 
 public class DBHandler {
 
 	private static final long INSERTION_FAIL_ID = -1;
+	public static final String DB_FOLDER_PROP = "db_dir";
+	private static final String SQLS_DIR = "sqls";
+
 	public static DBHandler self = null;
 	public static SqlSessionFactory sqlSessionFactory;
 	private static Logger logger = Logger.getLogger(DBHandler.class);
@@ -41,8 +44,8 @@ public class DBHandler {
 		InputStream inputStream = null;
 		inputStream = new FileInputStream(file);
 		Properties props = new Properties();
-		props.put(PropertyManager.DB_FOLDER,
-				PropertyManager.getProperty(PropertyManager.DB_FOLDER));
+		props.put(DB_FOLDER_PROP, Utils.getAppDirectoryFolder(Utils.DB_FOLDER)
+				.getAbsolutePath());
 		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream,
 				props);
 		try {
@@ -54,8 +57,7 @@ public class DBHandler {
 
 	public static void updateDB() throws FileNotFoundException, SQLException {
 		int n = getLastDBUpdateScript();
-		File sqlsDir = new File(
-				PropertyManager.getProperty(PropertyManager.SQLS_DIR));
+		File sqlsDir = new File(SQLS_DIR);
 		File[] scripts = sqlsDir.listFiles(new FileFilter() {
 
 			@Override

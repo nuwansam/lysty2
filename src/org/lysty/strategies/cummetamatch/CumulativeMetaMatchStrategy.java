@@ -1,6 +1,5 @@
 package org.lysty.strategies.cummetamatch;
 
-import java.io.File;
 import java.util.Map;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -8,7 +7,6 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 import org.lysty.dao.Song;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.AbstractVoteMatchPriorityStrategy;
-import org.lysty.strategies.AbstractVoteMatchStrategy;
 import org.lysty.util.FileUtils;
 import org.lysty.util.Utils;
 

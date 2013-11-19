@@ -10,7 +10,6 @@ import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.plaf.basic.BasicSliderUI;

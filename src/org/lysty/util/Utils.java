@@ -1,17 +1,24 @@
 package org.lysty.util;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
-import org.lysty.dao.Song;
 
 public class Utils {
 
 	public static final int EDIT_DISTANCE_THRESHOLD = 5;
+	private static final String LYSTY_FOLDER = "lysty";
+	public static final String PLUGINS_FOLDER = "plugins";
+	public static final String LOGS_FOLDER = "logs";
+	public static final String SETTINGSFILE = "settings.properties";
+	public static final String DB_FOLDER = "db";
 	public static Logger logger = Logger.getLogger(Utils.class);
 
 	public static int editDistance(String s, String t) {
@@ -104,4 +111,68 @@ public class Utils {
 		return true;
 	}
 
+	public static File getAppDirectoryFolder(String folderName) {
+		String workingDirectory;
+		// here, we assign the name of the OS, according to Java, to a
+		// variable...
+		String OS = (System.getProperty("os.name")).toUpperCase();
+		// to determine what the workingDirectory is.
+		// if it is some version of Windows
+		if (OS.contains("WIN")) {
+			// it is simply the location of the "AppData" folder
+			workingDirectory = System.getenv("AppData");
+		}
+		// Otherwise, we assume Linux or Mac
+		else {
+			// in either case, we would start in the user's home directory
+			workingDirectory = System.getProperty("user.home");
+			// if we are on a Mac, we are not done, we look for
+			// "Application Support"
+			workingDirectory += "/Library/Application Support";
+		}
+		workingDirectory = workingDirectory + File.separator + LYSTY_FOLDER;
+		File file = new File(workingDirectory + File.separator + folderName);
+		if (!file.exists()) {
+			boolean b = createAppdataFolder(workingDirectory);
+		}
+		file = new File(workingDirectory + File.separator + folderName);
+		return file;
+	}
+
+	private static boolean createAppdataFolder(String workingDir) {
+		File file = new File(workingDir);
+		boolean b = file.mkdir();
+		if (!b)
+			return false;
+		file = new File(workingDir + File.separator + DB_FOLDER);
+		b = file.mkdir();
+		if (!b)
+			return false;
+		file = new File(PLUGINS_FOLDER);
+		try {
+			org.apache.commons.io.FileUtils.copyDirectoryToDirectory(file,
+					new File(workingDir));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+
+		file = new File(workingDir + File.separator + LOGS_FOLDER);
+		b = file.mkdir();
+		if (!b)
+			return false;
+		file = new File(SETTINGSFILE);
+		try {
+			Files.copy(
+					Paths.get(file.toURI()),
+					Paths.get(new File(workingDir + File.separator
+							+ SETTINGSFILE).toURI()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 }

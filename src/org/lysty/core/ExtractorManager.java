@@ -15,6 +15,7 @@ import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import org.apache.log4j.Logger;
 import org.lysty.db.DBHandler;
 import org.lysty.extractors.FeatureExtractor;
+import org.lysty.util.Utils;
 
 public class ExtractorManager {
 
@@ -39,9 +40,8 @@ public class ExtractorManager {
 		PluginManager manager = PluginManagerFactory.createPluginManager();
 		extractors = new ArrayList<FeatureExtractor>();
 		extractorTimestamp = new HashMap<FeatureExtractor, Long>();
-		File file = new File(
-				PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
-						+ File.separator + EXTRACTORS_FOLDER);
+		File file = new File(Utils.getAppDirectoryFolder(Utils.PLUGINS_FOLDER)
+				.getAbsolutePath() + File.separator + EXTRACTORS_FOLDER);
 		File[] sDirs = file.listFiles(new FileFilter() {
 
 			@Override

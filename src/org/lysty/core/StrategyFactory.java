@@ -24,6 +24,7 @@ import org.lysty.exceptions.StrategyInitiationException;
 import org.lysty.strategies.AbstractStrategySettingsPanel;
 import org.lysty.strategies.StrategyConfiguration;
 import org.lysty.util.FileUtils;
+import org.lysty.util.Utils;
 
 public class StrategyFactory {
 
@@ -124,8 +125,8 @@ public class StrategyFactory {
 
 	private static StrategyConfiguration getLastSettings(
 			PlaylistGenerator strategy) throws FileNotFoundException {
-		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
-				+ File.separator + STRATEGIES_FOLDER;
+		String path = Utils.getAppDirectoryFolder(Utils.PLUGINS_FOLDER)
+				.getAbsolutePath() + File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "lastSettings.xml");
 		return getConfig(file);
@@ -145,7 +146,7 @@ public class StrategyFactory {
 
 	public static StrategyConfiguration getDefaultSettings(
 			PlaylistGenerator strategy) {
-		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+		String path = Utils.getAppDirectoryFolder(Utils.PLUGINS_FOLDER)
 				+ File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "defSettings.xml");
@@ -154,7 +155,7 @@ public class StrategyFactory {
 
 	public static void updateLastSettings(PlaylistGenerator strategy,
 			StrategyConfiguration strategySettngs) {
-		String path = PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
+		String path = Utils.getAppDirectoryFolder(Utils.PLUGINS_FOLDER)
 				+ File.separator + STRATEGIES_FOLDER;
 		File file = new File(path + File.separator + strategy.toString()
 				+ File.separator + "lastSettings.xml");
@@ -171,9 +172,8 @@ public class StrategyFactory {
 	public static void loadStrategies() {
 		PluginManager manager = PluginManagerFactory.createPluginManager();
 		allStrategies = new ArrayList<PlaylistGenerator>();
-		File file = new File(
-				PropertyManager.getProperty(PropertyManager.PLUGINS_DIR)
-						+ File.separator + STRATEGIES_FOLDER);
+		File file = new File(Utils.getAppDirectoryFolder(Utils.PLUGINS_FOLDER)
+				.getAbsolutePath() + File.separator + STRATEGIES_FOLDER);
 		File[] sDirs = file.listFiles(new FileFilter() {
 
 			@Override
