@@ -19,7 +19,6 @@ import org.lysty.ui.exception.SongNotIndexedException;
 public class TableDragDropListener implements DropTargetListener {
 	JTable table;
 	private Logger logger = Logger.getLogger(TableDragDropListener.class);
-	public static final double ROW_HEIGHT = 15;
 
 	public TableDragDropListener(JTable table) {
 		this.table = table;
@@ -38,7 +37,7 @@ public class TableDragDropListener implements DropTargetListener {
 		DataFlavor[] flavors = transferable.getTransferDataFlavors();
 		boolean done = false;
 		// Loop through the flavors
-		int row = (int) (event.getLocation().getY() / ROW_HEIGHT);
+		int row = (int) (event.getLocation().getY() / table.getRowHeight());
 		for (DataFlavor flavor : flavors) {
 			try {
 
