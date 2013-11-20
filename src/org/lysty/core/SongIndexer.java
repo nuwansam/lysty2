@@ -30,7 +30,7 @@ public class SongIndexer {
 				return true;
 
 			for (String ext : exts) {
-				if (file.getName().endsWith("." + ext))
+				if (file.getName().toLowerCase().endsWith("." + ext))
 					return true;
 			}
 			return false;
