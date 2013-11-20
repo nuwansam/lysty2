@@ -113,12 +113,14 @@ public class Utils {
 
 	public static File getAppDirectoryFolder(String folderName) {
 		String workingDirectory;
+		String lystyFolder = null;
 		// here, we assign the name of the OS, according to Java, to a
 		// variable...
 		String OS = (System.getProperty("os.name")).toUpperCase();
 		// to determine what the workingDirectory is.
 		// if it is some version of Windows
 		if (OS.contains("WIN")) {
+			lystyFolder = LYSTY_FOLDER;
 			// it is simply the location of the "AppData" folder
 			workingDirectory = System.getenv("AppData");
 		}
@@ -126,11 +128,14 @@ public class Utils {
 		else {
 			// in either case, we would start in the user's home directory
 			workingDirectory = System.getProperty("user.home");
+			lystyFolder = "." + LYSTY_FOLDER;
 			// if we are on a Mac, we are not done, we look for
 			// "Application Support"
-			workingDirectory += "/Library/Application Support";
+			if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX) {
+				workingDirectory += "/Library/Application Support";
+			}
 		}
-		workingDirectory = workingDirectory + File.separator + LYSTY_FOLDER;
+		workingDirectory = workingDirectory + File.separator + lystyFolder;
 		File file = new File(workingDirectory + File.separator + folderName);
 		if (!file.exists()) {
 			boolean b = createAppdataFolder(workingDirectory);

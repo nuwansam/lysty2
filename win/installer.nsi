@@ -195,22 +195,12 @@ Section "Install Files"
   File /r "..\config"
   File /r "..\lib"
   File /r "..\resources"
+  File /r "..\plugins"
   File /r "..\sqls"
   File "..\lysty.jar"
   File "..\lysty.exe"
-  
-  ${StrRep} '$0' '$APPDATA' '\' '/'
-  ; write the db,logs,settings folder paths to the config
-  ${WriteLineToFile} `$INSTDIR\config\config.properties` `db_dir=$0/Lysty/db`
-  ${WriteLineToFile} `$INSTDIR\config\config.properties` `plugins_dir=$0/Lysty/plugins`
-  ${WriteLineToFile} `$INSTDIR\config\config.properties` `logs_dir=$0/Lysty/logs`
-  ;${WriteLineToFile} `$INSTDIR/config/config.properties` `settings_file=$0/Lysty/settings/settings.properties'
- ${WriteLineToFile} `$INSTDIR\config\config.properties` `settings_file=$0/Lysty/settings/settings.properties`
-  
- SetOutPath $APPDATA\Lysty
-  File /r "..\settings"
-  File /r "..\plugins"
-  
+   File "..\settings.properties"
+   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Lysty "Install_Dir" "$INSTDIR"
   
