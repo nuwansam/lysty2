@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project lysty2 with libraries in sub-folder">
+<project default="deploy" name="Create Runnable Jar for Project lysty2 with libraries in sub-folder">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
-	<property name="work.dir" value="/"/>
+	<property name="work.dir" value="."/>
 	<property name="deploy.dir" value="../lysty_out"/>
-    <target name="create_run_jar">
+	<property file="build.properties"/>
+	
+	<target name="clean">
+		<delete dir="${work.dir}/bin"/>
+		<delete dir="${deploy.dir}"/>
+	</target>
+	<target name="compile" depends="clean">
 		<path id="build-classpath">
 		<fileset dir="${work.dir}/lib">
 			<include name="*.jar"/>
 		</fileset>
 		</path>
+		<mkdir dir="${work.dir}/bin"/>
+		<javac srcdir="${work.dir}/src" destdir="${work.dir}/bin" fork="yes" executable="${jdk.path}/bin/javac.exe">
+		<classpath refid="build-classpath" />
+		</javac>
+	</target>
+    <target name="create_run_jar" depends="compile">
 		<manifestclasspath property="lib.list" jarfile="${work.dir}/lysty.jar">
-			<classpath refid="build-classpath"/>
+		<classpath refid="build-classpath"/>
 		</manifestclasspath>
         <jar destfile="${deploy.dir}/lysty.jar">
             <manifest>
@@ -41,11 +53,8 @@
 		</copy>
 		<copy file="${work.dir}/run.bat" tofile="${deploy.dir}/run.bat"/>
 		<copy file="${work.dir}/settings.properties" tofile="${deploy.dir}/settings.properties"/>
-		</target>
-	
-	<target name="clean">
-	<delete dir="${deploy.dir}"/>
 	</target>
+	
 	<target name="windeploy" depends="deploy">
 		<copy todir="${deploy.dir}/win">
 			<fileset dir="${work.dir}/win"/>
