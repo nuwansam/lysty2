@@ -31,30 +31,35 @@ public class Main {
 	static Logger logger = Logger.getLogger(Main.class);
 
 	public static void main(String[] args) {
-		System.setProperty("lysty_logs_folder_path", Utils
-				.getAppDirectoryFolder(Utils.LOGS_FOLDER).getAbsolutePath());
-		DOMConfigurator.configure("config/log4j_config.xml");
-		boolean success = ApplicationInstanceManager.registerInstance(args);
-		if (!success) {
-			// instance already running.
-			System.exit(0);
-		} else {
-			// first instance;
-			init();
-			handleArgs(args);
-		}
+		try {
+			System.setProperty("lysty_logs_folder_path", Utils
+					.getAppDirectoryFolder(Utils.LOGS_FOLDER).getAbsolutePath());
+			DOMConfigurator.configure("config/log4j_config.xml");
+			boolean success = ApplicationInstanceManager.registerInstance(args);
+			if (!success) {
+				// instance already running.
+				System.exit(0);
+			} else {
+				// first instance;
+				init();
+				handleArgs(args);
+			}
 
-		ApplicationInstanceManager
-				.setApplicationInstanceListener(new ApplicationInstanceListener() {
-					@Override
-					public void newInstanceCreated(String[] args) {
-						logger.info("New instance detected with following args:");
-						for (int i = 0; i < args.length; i++) {
-							logger.info("arg " + i + " " + args[i]);
+			ApplicationInstanceManager
+					.setApplicationInstanceListener(new ApplicationInstanceListener() {
+						@Override
+						public void newInstanceCreated(String[] args) {
+							logger.info("New instance detected with following args:");
+							for (int i = 0; i < args.length; i++) {
+								logger.info("arg " + i + " " + args[i]);
+							}
+							handleArgs(args);
 						}
-						handleArgs(args);
-					}
-				});
+					});
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
 	}
 
 	private static void init() {

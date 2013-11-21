@@ -6,22 +6,26 @@
 	<property name="deploy.dir" value="../lysty_out"/>
 	<property file="build.properties"/>
 	
-	<target name="clean">
+	<target name="cleanbin">
 		<delete dir="${work.dir}/bin"/>
+	</target>
+	<target name="cleandist">
 		<delete dir="${deploy.dir}"/>
 	</target>
-	<target name="compile" depends="clean">
+	<target name="make_classpath">
 		<path id="build-classpath">
 		<fileset dir="${work.dir}/lib">
 			<include name="*.jar"/>
 		</fileset>
 		</path>
+	</target>
+	<target name="compile" depends="make_classpath">
 		<mkdir dir="${work.dir}/bin"/>
 		<javac srcdir="${work.dir}/src" destdir="${work.dir}/bin" fork="yes" executable="${jdk.path}/bin/javac.exe">
 		<classpath refid="build-classpath" />
 		</javac>
 	</target>
-    <target name="create_run_jar" depends="compile">
+    <target name="create_run_jar" depends="make_classpath">
 		<manifestclasspath property="lib.list" jarfile="${work.dir}/lysty.jar">
 		<classpath refid="build-classpath"/>
 		</manifestclasspath>

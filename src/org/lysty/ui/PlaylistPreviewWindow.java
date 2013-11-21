@@ -228,6 +228,27 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 			}
 		});
 
+		JMenuItem mnuAddSong = new JMenuItem(new AbstractAction("Add Songs") {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setMultiSelectionEnabled(true);
+				int c = chooser.showOpenDialog(PlaylistPreviewWindow.this);
+				if (c == JFileChooser.APPROVE_OPTION) {
+					File[] files = chooser.getSelectedFiles();
+					Song song;
+					for (File file : files) {
+						song = DBHandler.getInstance().getSong(file);
+						if (song == null) {
+							song = new Song(file);
+						}
+						addSongNext(song);
+					}
+				}
+			}
+		});
+
 		JMenuItem mnuClear = new JMenuItem(
 				new AbstractAction("Clear Playlist") {
 
@@ -326,6 +347,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		mnuTools.add(mnuToolsSettings);
 
 		mnuFile.add(mnuClear);
+		mnuFile.addSeparator();
+		mnuFile.add(mnuAddSong);
 		mnuFile.add(mnuLoadPlaylist);
 		mnuFile.addSeparator();
 		mnuFile.add(mnuFileSave);
