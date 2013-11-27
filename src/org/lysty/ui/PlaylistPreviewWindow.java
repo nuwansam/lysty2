@@ -177,6 +177,9 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 						@Override
 						public void actionPerformed(ActionEvent e) {
+							if(rowindex==currentSongIndex){
+								stop();
+							}
 							model.removeRow(rowindex);
 						}
 					});

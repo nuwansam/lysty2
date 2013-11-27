@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JOptionPane;
+import javax.swing.ProgressMonitor;
 import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
@@ -16,6 +17,7 @@ import org.lysty.db.DBHandler;
 import org.lysty.players.PlayerManager;
 import org.lysty.ui.ApplicationInstanceListener;
 import org.lysty.ui.ApplicationInstanceManager;
+import org.lysty.ui.MetaDataEditor;
 import org.lysty.ui.PlayerPanel;
 import org.lysty.ui.PlaylistPreviewWindow;
 import org.lysty.ui.PlaylistProfileWindow;
@@ -27,6 +29,8 @@ public class Main {
 	private static final String ENQUEUE = "ENQUEUE";
 
 	private static final String PLAY_NEXT = "PLAY_NEXT";
+
+	private static final String LYSTY_URL = "http://www.lystyplayer.com";
 
 	static Logger logger = Logger.getLogger(Main.class);
 
@@ -70,6 +74,21 @@ public class Main {
 		StrategyFactory.loadStrategies();
 		logger.info("strategies loaded.");
 		PlayerManager.getInstance();
+		boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
+		if (isNewVAvailable) {
+			int c = JOptionPane
+					.showOptionDialog(
+							null,
+							"New Version of Lysty found. Would you like to download now?",
+							"New Version Found", JOptionPane.YES_NO_OPTION,
+							JOptionPane.INFORMATION_MESSAGE, null,
+							new String[] { "yes", "no" }, "yes");
+			if (c == JOptionPane.YES_OPTION) {
+				Utils.openBrowser(LYSTY_URL);
+				System.exit(0);
+			}
+		}
+
 		AppSettingsManager.loadProperties(Utils
 				.getAppDirectoryFolder(Utils.SETTINGSFILE));
 		try {

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.lysty.db.DBHandler;
 import org.lysty.util.FileUtils;
+import org.lysty.util.Utils;
 
 /**
  * Abstraction of a song
@@ -123,8 +124,23 @@ public class Song {
 		if (file == null) {
 			if (other.file != null)
 				return false;
-		} else if (!file.equals(other.file))
+		} else if (!file.equals(other.file)) {
 			return false;
+		} else {
+			String fArtist = this.getAttribute("artist");
+			String fTitle = this.getAttribute("title");
+			String oArtist = other.getAttribute("artist");
+			String oTitle = other.getAttribute("title");
+			if (Utils.stringNotNullOrEmpty(fArtist)
+					&& Utils.stringNotNullOrEmpty(fTitle)
+					&& Utils.stringNotNullOrEmpty(oArtist)
+					&& Utils.stringNotNullOrEmpty(oTitle)) {
+				if (!Utils.isSimilar(fArtist, oArtist)
+						|| !Utils.isSimilar(fTitle, oTitle)) {
+					return false;
+				}
+			}
+		}
 		return true;
 	}
 

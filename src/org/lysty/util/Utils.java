@@ -1,7 +1,9 @@
 package org.lysty.util;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -179,5 +181,51 @@ public class Utils {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Return if two strings are similar or not. Assumes non-null check is done
+	 * on args
+	 * 
+	 * @param str1
+	 * @param str2
+	 * @return
+	 */
+	public static boolean isSimilar(String str1, String str2) {
+		try {
+			str1 = str1.trim().toLowerCase();
+			str2 = str2.trim().toLowerCase();
+			int thres = 3;
+			if (Math.min(str1.length(), str2.length()) <= 5) {
+				thres = 1;
+			}
+			if (editDistance(str1, str2) <= thres)
+				return true;
+			return false;
+		} catch (Exception e) {
+			return false;
+		}
+
+	}
+
+	public static void openBrowser(String url) {
+	
+		if (Desktop.isDesktopSupported()) {
+			Desktop desktop = Desktop.getDesktop();
+			try {
+				desktop.browse(new URI(url));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			Runtime runtime = Runtime.getRuntime();
+			try {
+				runtime.exec("xdg-open " + url);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }
