@@ -8,6 +8,13 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 
@@ -40,10 +47,10 @@ public class ApplicationInstanceManager {
 		// if success, listen to socket for new instance message, return true
 		// if unable to open, connect to existing and send new instance message,
 		// return false
-		try {
-			final ServerSocket socket = new ServerSocket(
-					SINGLE_INSTANCE_NETWORK_SOCKET, 10,
-					InetAddress.getLocalHost());
+		try (ServerSocket socket = new ServerSocket(
+				SINGLE_INSTANCE_NETWORK_SOCKET, 10,
+				InetAddress.getLocalHost())){
+			
 			log.debug("Listening for application instances on socket "
 					+ SINGLE_INSTANCE_NETWORK_SOCKET);
 			Thread instanceListenerThread = new Thread(new Runnable() {
@@ -56,16 +63,34 @@ public class ApplicationInstanceManager {
 						} else {
 							try {
 								Socket client = socket.accept();
-								BufferedReader in = new BufferedReader(
+								final BufferedReader in = new BufferedReader(
 										new InputStreamReader(client
 												.getInputStream()));
-								String message = in.readLine();
+								ExecutorService executor = Executors.newSingleThreadExecutor();
+							    Future<String> future = executor.submit(new Callable<String>() {
+
+									@Override
+									public String call() throws Exception {										
+										 return in.readLine();
+									}
+								});
+							    
+							    String message = future.get(100, TimeUnit.MILLISECONDS);
+							
 								if (message == null)
 									message = "";
 								if (SINGLE_INSTANCE_SHARED_KEY.trim().equals(
 										message.trim())) {
 									log.debug("Shared key matched - new application instance found");
-									String newArgsStr = in.readLine();
+								    future = executor.submit(new Callable<String>() {
+
+										@Override
+										public String call() throws Exception {										
+											 return in.readLine();
+										}
+									});
+									String newArgsStr = future.get(100, TimeUnit.MILLISECONDS);
+									
 									if (newArgsStr == null)
 										newArgsStr = "";
 									String[] newArgs = newArgsStr.split("\\|");
@@ -77,7 +102,8 @@ public class ApplicationInstanceManager {
 								}
 								in.close();
 								client.close();
-							} catch (IOException e) {
+							} catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
+								log.debug("Client Socket Closed.");
 								socketClosed = true;
 							}
 						}
