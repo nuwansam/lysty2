@@ -47,10 +47,11 @@ public class ApplicationInstanceManager {
 		// if success, listen to socket for new instance message, return true
 		// if unable to open, connect to existing and send new instance message,
 		// return false
-		try (ServerSocket socket = new ServerSocket(
-				SINGLE_INSTANCE_NETWORK_SOCKET, 10,
-				InetAddress.getLocalHost())){
-			
+		try {
+			final ServerSocket socket = new ServerSocket(
+					SINGLE_INSTANCE_NETWORK_SOCKET, 10,
+					InetAddress.getLocalHost());
+
 			log.debug("Listening for application instances on socket "
 					+ SINGLE_INSTANCE_NETWORK_SOCKET);
 			Thread instanceListenerThread = new Thread(new Runnable() {
@@ -66,31 +67,38 @@ public class ApplicationInstanceManager {
 								final BufferedReader in = new BufferedReader(
 										new InputStreamReader(client
 												.getInputStream()));
-								ExecutorService executor = Executors.newSingleThreadExecutor();
-							    Future<String> future = executor.submit(new Callable<String>() {
+								ExecutorService executor = Executors
+										.newSingleThreadExecutor();
+								Future<String> future = executor
+										.submit(new Callable<String>() {
 
-									@Override
-									public String call() throws Exception {										
-										 return in.readLine();
-									}
-								});
-							    
-							    String message = future.get(100, TimeUnit.MILLISECONDS);
-							
+											@Override
+											public String call()
+													throws Exception {
+												return in.readLine();
+											}
+										});
+
+								String message = future.get(100,
+										TimeUnit.MILLISECONDS);
+
 								if (message == null)
 									message = "";
 								if (SINGLE_INSTANCE_SHARED_KEY.trim().equals(
 										message.trim())) {
 									log.debug("Shared key matched - new application instance found");
-								    future = executor.submit(new Callable<String>() {
+									future = executor
+											.submit(new Callable<String>() {
 
-										@Override
-										public String call() throws Exception {										
-											 return in.readLine();
-										}
-									});
-									String newArgsStr = future.get(100, TimeUnit.MILLISECONDS);
-									
+												@Override
+												public String call()
+														throws Exception {
+													return in.readLine();
+												}
+											});
+									String newArgsStr = future.get(100,
+											TimeUnit.MILLISECONDS);
+
 									if (newArgsStr == null)
 										newArgsStr = "";
 									String[] newArgs = newArgsStr.split("\\|");
@@ -102,7 +110,7 @@ public class ApplicationInstanceManager {
 								}
 								in.close();
 								client.close();
-							} catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
+							} catch (Exception e) {
 								log.debug("Client Socket Closed.");
 								socketClosed = true;
 							}

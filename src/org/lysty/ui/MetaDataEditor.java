@@ -155,6 +155,11 @@ public class MetaDataEditor extends LFrame {
 			}
 		});
 
+		java.awt.Font oldFont = btnCommit.getFont();
+		java.awt.Font newFont = new java.awt.Font(oldFont.getName(),
+				java.awt.Font.BOLD, oldFont.getSize());
+		btnCommit.setFont(newFont);
+
 		JButton btnCancel = new JButton(new AbstractAction("Cancel") {
 
 			@Override

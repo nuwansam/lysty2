@@ -36,7 +36,6 @@ public class VersionHandler {
 				tagName = obj.get("tag_name").toString();
 				if (Utils.stringNotNullOrEmpty(tagName)) {
 					tagName = tagName.substring(1);
-					System.out.println(tagName);
 					versionStrs = tagName.split("\\.");
 					majorV = Integer.parseInt(versionStrs[0]);
 					minorV = Integer.parseInt(versionStrs[1]);

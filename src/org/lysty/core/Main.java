@@ -1,14 +1,22 @@
 package org.lysty.core;
 
+import java.awt.Color;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.ProgressMonitor;
+import javax.swing.JPanel;
+import javax.swing.JWindow;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+
+import net.miginfocom.swing.MigLayout;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -17,7 +25,6 @@ import org.lysty.db.DBHandler;
 import org.lysty.players.PlayerManager;
 import org.lysty.ui.ApplicationInstanceListener;
 import org.lysty.ui.ApplicationInstanceManager;
-import org.lysty.ui.MetaDataEditor;
 import org.lysty.ui.PlayerPanel;
 import org.lysty.ui.PlaylistPreviewWindow;
 import org.lysty.ui.PlaylistProfileWindow;
@@ -45,8 +52,26 @@ public class Main {
 				System.exit(0);
 			} else {
 				// first instance;
+				JWindow window = new JWindow();
+				URL url = new File("resources/icons/splash.png").toURI()
+						.toURL();
+				JLabel lbl = new JLabel("", new ImageIcon(url),
+						SwingConstants.CENTER);
+				window.setLayout(new MigLayout("", "", ""));
+				JPanel pnl = new JPanel();
+				pnl.setOpaque(false);
+				pnl.add(lbl);
+				window.setContentPane(pnl);
+				// window.setBounds(500, 150, 300, 200);
+				window.setSize(lbl.getPreferredSize());
+				window.setLocationByPlatform(true);
+				window.setVisible(true);
+				window.setBackground(new Color(0, 0, 0, 0));
+
 				init();
 				handleArgs(args);
+
+				window.setVisible(false);
 			}
 
 			ApplicationInstanceManager
@@ -74,20 +99,6 @@ public class Main {
 		StrategyFactory.loadStrategies();
 		logger.info("strategies loaded.");
 		PlayerManager.getInstance();
-		boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
-		if (isNewVAvailable) {
-			int c = JOptionPane
-					.showOptionDialog(
-							null,
-							"New Version of Lysty found. Would you like to download now?",
-							"New Version Found", JOptionPane.YES_NO_OPTION,
-							JOptionPane.INFORMATION_MESSAGE, null,
-							new String[] { "yes", "no" }, "yes");
-			if (c == JOptionPane.YES_OPTION) {
-				Utils.openBrowser(LYSTY_URL);
-				System.exit(0);
-			}
-		}
 
 		AppSettingsManager.loadProperties(Utils
 				.getAppDirectoryFolder(Utils.SETTINGSFILE));
@@ -104,6 +115,22 @@ public class Main {
 			}
 			logger.error(e);
 		}
+
+		boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
+		if (isNewVAvailable) {
+			int c = JOptionPane
+					.showOptionDialog(
+							null,
+							"New Version of Lysty found. Would you like to download now?",
+							"New Version Found", JOptionPane.YES_NO_OPTION,
+							JOptionPane.INFORMATION_MESSAGE, null,
+							new String[] { "yes", "no" }, "yes");
+			if (c == JOptionPane.YES_OPTION) {
+				Utils.openBrowser(LYSTY_URL);
+				System.exit(0);
+			}
+		}
+
 	}
 
 	/**
@@ -184,6 +211,14 @@ public class Main {
 				@Override
 				public void run() {
 					PlaylistPreviewWindow.getInstance();
+					/*
+					 * Song song = DBHandler .getInstance() .getSong( new File(
+					 * "D:\\Songs\\English\\English love songs\\Westlife - My Love.mp3"
+					 * )); Song song2 = DBHandler .getInstance() .getSong( new
+					 * File(
+					 * "D:\\Songs\\English\\Westlife\\Westlife - My Love.mp3"));
+					 * System.out.println(song.equals(song2));
+					 */
 				}
 			});
 		}

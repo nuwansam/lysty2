@@ -88,6 +88,12 @@ public class IndexerWindow extends LFrame {
 				index();
 			}
 		});
+
+		java.awt.Font oldFont = btnIndex.getFont();
+		java.awt.Font newFont = new java.awt.Font(oldFont.getName(),
+				java.awt.Font.BOLD, oldFont.getSize());
+		btnIndex.setFont(newFont);
+
 		lstFolders = new JList();
 
 		chkIsIncremental = new JCheckBox(CAPTION_IS_INCREMENTAL);
@@ -138,6 +144,7 @@ public class IndexerWindow extends LFrame {
 			}
 		};
 		thread.start();
+		this.setVisible(false);
 	}
 
 }
