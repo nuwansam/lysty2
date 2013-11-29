@@ -62,12 +62,10 @@ public class Main {
 				pnl.setOpaque(false);
 				pnl.add(lbl);
 				window.setContentPane(pnl);
-				// window.setBounds(500, 150, 300, 200);
 				window.setSize(lbl.getPreferredSize());
 				window.setLocationByPlatform(true);
 				window.setVisible(true);
-				window.setBackground(new Color(0, 0, 0, 0));
-
+			//	window.setBackground(new Color(0, 0, 0, 0));
 				init();
 				handleArgs(args);
 
@@ -94,6 +92,7 @@ public class Main {
 	private static void init() {
 		// PropertyManager.loadProperties();
 		DBHandler.getInstance();
+		Utils.copyPlugins();
 		ExtractorManager.loadExtractors();
 		logger.info("extractors loaded.");
 		StrategyFactory.loadStrategies();
@@ -116,7 +115,8 @@ public class Main {
 			logger.error(e);
 		}
 
-		boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
+		// boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
+		boolean isNewVAvailable = false;
 		if (isNewVAvailable) {
 			int c = JOptionPane
 					.showOptionDialog(

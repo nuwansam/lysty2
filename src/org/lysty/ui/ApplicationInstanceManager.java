@@ -8,13 +8,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 
@@ -51,7 +44,6 @@ public class ApplicationInstanceManager {
 			final ServerSocket socket = new ServerSocket(
 					SINGLE_INSTANCE_NETWORK_SOCKET, 10,
 					InetAddress.getLocalHost());
-
 			log.debug("Listening for application instances on socket "
 					+ SINGLE_INSTANCE_NETWORK_SOCKET);
 			Thread instanceListenerThread = new Thread(new Runnable() {
@@ -64,41 +56,16 @@ public class ApplicationInstanceManager {
 						} else {
 							try {
 								Socket client = socket.accept();
-								final BufferedReader in = new BufferedReader(
+								BufferedReader in = new BufferedReader(
 										new InputStreamReader(client
 												.getInputStream()));
-								ExecutorService executor = Executors
-										.newSingleThreadExecutor();
-								Future<String> future = executor
-										.submit(new Callable<String>() {
-
-											@Override
-											public String call()
-													throws Exception {
-												return in.readLine();
-											}
-										});
-
-								String message = future.get(100,
-										TimeUnit.MILLISECONDS);
-
+								String message = in.readLine();
 								if (message == null)
 									message = "";
 								if (SINGLE_INSTANCE_SHARED_KEY.trim().equals(
 										message.trim())) {
 									log.debug("Shared key matched - new application instance found");
-									future = executor
-											.submit(new Callable<String>() {
-
-												@Override
-												public String call()
-														throws Exception {
-													return in.readLine();
-												}
-											});
-									String newArgsStr = future.get(100,
-											TimeUnit.MILLISECONDS);
-
+									String newArgsStr = in.readLine();
 									if (newArgsStr == null)
 										newArgsStr = "";
 									String[] newArgs = newArgsStr.split("\\|");
@@ -110,8 +77,7 @@ public class ApplicationInstanceManager {
 								}
 								in.close();
 								client.close();
-							} catch (Exception e) {
-								log.debug("Client Socket Closed.");
+							} catch (IOException e) {
 								socketClosed = true;
 							}
 						}

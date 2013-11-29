@@ -1,5 +1,6 @@
 package org.lysty.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,11 +15,13 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
@@ -342,7 +345,17 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
 		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
 				.toArray(new PlaylistGenerator[list.size()])));
+		cmbStrategy.setRenderer(new ListCellRenderer<PlaylistGenerator>() {
 
+			@Override
+			public Component getListCellRendererComponent(
+					JList<? extends PlaylistGenerator> list,
+					PlaylistGenerator value, int index, boolean isSelected,
+					boolean cellHasFocus) {
+				JLabel lbl = new JLabel(value.getStrategyDisplayName());
+				return lbl;
+			}
+		});
 		cmbStrategy.addItemListener(new ItemListener() {
 
 			@Override

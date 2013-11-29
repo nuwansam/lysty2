@@ -18,9 +18,13 @@ public class Utils {
 	public static final int EDIT_DISTANCE_THRESHOLD = 5;
 	private static final String LYSTY_FOLDER = "lysty";
 	public static final String PLUGINS_FOLDER = "plugins";
+	public static final String EXTRACTORS_FOLDER = "extractors";
+	public static final String STRATEGIES_FOLDER = "strategies";
 	public static final String LOGS_FOLDER = "logs";
 	public static final String SETTINGSFILE = "settings.properties";
 	public static final String DB_FOLDER = "db";
+	private static final String EXTRACTOR_JAR = "extractor.jar";
+	private static final String STRATEGY_JAR = "strategy.jar";
 	public static Logger logger = Logger.getLogger(Utils.class);
 
 	public static int editDistance(String s, String t) {
@@ -209,7 +213,7 @@ public class Utils {
 	}
 
 	public static void openBrowser(String url) {
-	
+
 		if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
 			try {
@@ -227,5 +231,61 @@ public class Utils {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public static void copyPlugins() {
+		File appDataFolder = getAppDirectoryFolder(PLUGINS_FOLDER);
+		File srcPluginFolder = new File(PLUGINS_FOLDER + File.separator
+				+ EXTRACTORS_FOLDER);
+		File destPluginFolder = new File(appDataFolder.getAbsolutePath()
+				+ File.separator + EXTRACTORS_FOLDER);
+
+		updatePluginType(srcPluginFolder, destPluginFolder, EXTRACTOR_JAR);
+
+		srcPluginFolder = new File(PLUGINS_FOLDER + File.separator
+				+ STRATEGIES_FOLDER);
+		destPluginFolder = new File(appDataFolder.getAbsolutePath()
+				+ File.separator + STRATEGIES_FOLDER);
+		updatePluginType(srcPluginFolder, destPluginFolder, STRATEGY_JAR);
+	}
+
+	private static void updatePluginType(File srcFolder, File destFolder,
+			String pluginJarName) {
+		File appDataJarFile;
+		File pluginJarFile;
+		File[] plugins = srcFolder.listFiles();
+		for (File plugin : plugins) {
+			appDataJarFile = new File(destFolder.getAbsolutePath()
+					+ File.separator + plugin.getName() + File.separator
+					+ pluginJarName);
+			pluginJarFile = new File(srcFolder.getAbsolutePath()
+					+ File.separator + plugin.getName() + File.separator
+					+ pluginJarName);
+			if (!appDataJarFile.exists()) {
+				// copy the entire folder
+				try {
+					org.apache.commons.io.FileUtils.copyDirectoryToDirectory(
+							pluginJarFile.getParentFile(),
+							appDataJarFile.getParentFile());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					logger.error("Error copying directory: "
+							+ pluginJarFile.getParentFile().getAbsolutePath(),
+							e);
+				}
+			} else {
+				// update the plugin jar
+				try {
+					org.apache.commons.io.FileUtils.copyFile(pluginJarFile,
+							appDataJarFile);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					logger.error(
+							"Could not copy jar file: "
+									+ pluginJarFile.getAbsolutePath(), e);
+				}
+			}
+		}
+
 	}
 }

@@ -38,7 +38,7 @@ public class MetaTagMatchStrategy extends AbstractVoteMatchStrategy {
 
 	@Override
 	public String getStrategyDisplayName() {
-		return "Meta tag Match";
+		return "ID3 Tag Match";
 	}
 
 	@Override

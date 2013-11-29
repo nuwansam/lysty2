@@ -65,7 +65,7 @@ public class CumulativeMetaMatchStrategy extends
 	@Override
 	public String getStrategyDisplayName() {
 		// TODO Auto-generated method stub
-		return "Cumulative Meta Match";
+		return "Weighted ID3 Match";
 	}
 
 	@Override
