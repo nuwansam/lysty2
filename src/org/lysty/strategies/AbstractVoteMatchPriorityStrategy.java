@@ -16,7 +16,7 @@ import org.lysty.db.DBHandler;
 public abstract class AbstractVoteMatchPriorityStrategy implements
 		PlaylistGenerator {
 
-	private static final int PREFERENCE_RATIO = 75;
+	private static final int PREFERENCE_RATIO = 70;
 	protected Map<String, String> attributes;
 
 	@Override

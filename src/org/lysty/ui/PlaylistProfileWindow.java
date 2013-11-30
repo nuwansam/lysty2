@@ -1,5 +1,6 @@
 package org.lysty.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -22,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,6 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
+import javax.swing.ListCellRenderer;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.TitledBorder;
@@ -295,6 +298,18 @@ public class PlaylistProfileWindow extends LFrame implements
 		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
 				.toArray(new PlaylistGenerator[list.size()])));
 
+		cmbStrategy.setRenderer(new ListCellRenderer<PlaylistGenerator>() {
+
+			@Override
+			public Component getListCellRendererComponent(
+					JList<? extends PlaylistGenerator> list,
+					PlaylistGenerator value, int index, boolean isSelected,
+					boolean cellHasFocus) {
+				JLabel lbl = new JLabel(value.getStrategyDisplayName());
+				return lbl;
+			}
+		});
+
 		cmbStrategy.addItemListener(new ItemListener() {
 
 			@Override
@@ -309,13 +324,14 @@ public class PlaylistProfileWindow extends LFrame implements
 
 		cmbStrategy.setSelectedIndex(0);
 
-		btnSettings = new JButton(new AbstractAction("...") {
+		btnSettings = new JButton(new AbstractAction("") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				showSettingsFrame();
 			}
 		});
+		btnSettings.setIcon(Utils.getIcon(ResourceConstants.SETTINGS_ICON));
 
 		btnFillPlay = new JButton(new AbstractAction("Fill & Play") {
 

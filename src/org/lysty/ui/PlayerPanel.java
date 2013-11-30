@@ -333,14 +333,14 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		btnRandom.setIcon(Utils.getIcon(ResourceConstants.SHUFFLE_ICON));
 		btnRandom.setSelected(false);
 
-		btnFillSettings = new JButton(new AbstractAction("...") {
+		btnFillSettings = new JButton(new AbstractAction("") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				showSettingsFrame();
 			}
 		});
-
+		btnFillSettings.setIcon(Utils.getIcon(ResourceConstants.SETTINGS_ICON));
 		cmbStrategy = new JComboBox();
 		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
 		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list

@@ -246,6 +246,7 @@ Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\Lysty"
   CreateShortCut "$SMPROGRAMS\Lysty\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Lysty\Lysty.lnk" "$INSTDIR\lysty.exe" "" "$INSTDIR\lysty.exe" 0
+  CreateShortCut "$DESKTOP\Lysty.lnk" "$INSTDIR\lysty.exe"
   
 SectionEnd
 
@@ -271,7 +272,8 @@ Section "Uninstall"
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\Lysty\*.*"
-
+  Delete "$DESKTOP\Lysty.lnk"
+  
   ; Remove directories used
   RMDir "$SMPROGRAMS\Lysty"
   RMDir "$INSTDIR"

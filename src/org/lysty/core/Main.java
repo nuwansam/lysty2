@@ -65,7 +65,7 @@ public class Main {
 				window.setSize(lbl.getPreferredSize());
 				window.setLocationByPlatform(true);
 				window.setVisible(true);
-			//	window.setBackground(new Color(0, 0, 0, 0));
+				// window.setBackground(new Color(0, 0, 0, 0));
 				init();
 				handleArgs(args);
 
@@ -115,22 +115,24 @@ public class Main {
 			logger.error(e);
 		}
 
-		// boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
-		boolean isNewVAvailable = false;
-		if (isNewVAvailable) {
-			int c = JOptionPane
-					.showOptionDialog(
-							null,
-							"New Version of Lysty found. Would you like to download now?",
-							"New Version Found", JOptionPane.YES_NO_OPTION,
-							JOptionPane.INFORMATION_MESSAGE, null,
-							new String[] { "yes", "no" }, "yes");
-			if (c == JOptionPane.YES_OPTION) {
-				Utils.openBrowser(LYSTY_URL);
-				System.exit(0);
+		boolean checkNewVersion = Utils.getRandomBoolean(40);
+		if (checkNewVersion) {
+			boolean isNewVAvailable = VersionHandler.isNewVersionAvailable();
+
+			if (isNewVAvailable) {
+				int c = JOptionPane
+						.showOptionDialog(
+								null,
+								"New Version of Lysty found. Would you like to download now?",
+								"New Version Found", JOptionPane.YES_NO_OPTION,
+								JOptionPane.INFORMATION_MESSAGE, null,
+								new String[] { "yes", "no" }, "yes");
+				if (c == JOptionPane.YES_OPTION) {
+					Utils.openBrowser(LYSTY_URL);
+					System.exit(0);
+				}
 			}
 		}
-
 	}
 
 	/**

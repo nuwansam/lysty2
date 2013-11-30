@@ -14,4 +14,5 @@ public class ResourceConstants {
 	public static final String LYSTY_ICON = "lysty.png";
 	public static final String SLEEP_ICON = "sleep.png";
 	public static final String CIRCULAR_ICON = "circular.png";
+	public static final String SETTINGS_ICON = "settings.png";
 }

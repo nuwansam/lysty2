@@ -13,6 +13,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileFilter;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -69,7 +70,21 @@ public class IndexerWindow extends LFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
+				chooser.setDialogTitle("Choose folder");
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setFileFilter(new FileFilter() {
+
+					@Override
+					public String getDescription() {
+						// TODO Auto-generated method stub
+						return "Folders";
+					}
+
+					@Override
+					public boolean accept(File arg0) {
+						return arg0.isDirectory();
+					}
+				});
 				chooser.setMultiSelectionEnabled(true);
 				int r = chooser.showOpenDialog(IndexerWindow.this);
 				if (r != JFileChooser.CANCEL_OPTION) {

@@ -266,7 +266,7 @@ public class Utils {
 				try {
 					org.apache.commons.io.FileUtils.copyDirectoryToDirectory(
 							pluginJarFile.getParentFile(),
-							appDataJarFile.getParentFile());
+							destFolder);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					logger.error("Error copying directory: "
@@ -287,5 +287,18 @@ public class Utils {
 			}
 		}
 
+	}
+
+	/**
+	 * Returns a boolean with the probability of being true being "probability"
+	 * value
+	 * 
+	 * @param probability
+	 *            probability of being true
+	 * @return
+	 */
+	public static boolean getRandomBoolean(int probability) {
+		int c = (int) (Math.random() * 100);
+		return c >= (100 - probability);
 	}
 }
