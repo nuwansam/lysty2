@@ -371,7 +371,8 @@ public class DBHandler {
 			int currentProgress = 0;
 			for (Modification change : changes) {
 				currentProgress++;
-				listener.setProgress(currentProgress);
+				if (listener != null)
+					listener.setProgress(currentProgress);
 				try {
 					if (change.getFeature() == null) {
 						// song addition

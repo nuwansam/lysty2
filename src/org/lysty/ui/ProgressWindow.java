@@ -27,7 +27,7 @@ public class ProgressWindow extends LFrame implements UpdateListener {
 	JProgressBar progressBar;
 	JList lstErrors;
 	JScrollPane scroller;
-	private DefaultListModel<String> errorListModel;
+	private DefaultListModel errorListModel;
 	private int errorCount = 0;
 	private long successCount;
 	private boolean isCancelEnabled;
@@ -78,7 +78,7 @@ public class ProgressWindow extends LFrame implements UpdateListener {
 		progressBar.setPreferredSize(new Dimension(400, 20));
 		progressBar.setStringPainted(true);
 		lstErrors = new JList();
-		errorListModel = new DefaultListModel<String>();
+		errorListModel = new DefaultListModel();
 		lstErrors.setModel(errorListModel);
 		scroller = new JScrollPane(lstErrors);
 	}

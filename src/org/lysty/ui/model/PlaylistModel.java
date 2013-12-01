@@ -64,6 +64,10 @@ public class PlaylistModel extends DefaultTableModel implements Reorderable,
 		return false;
 	}
 
+	public Song getSongAt(int rowIndex) {
+		return list.get(rowIndex);
+	}
+
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		// TODO Auto-generated method stub

@@ -177,13 +177,26 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if(rowindex==currentSongIndex){
+							if (rowindex == currentSongIndex) {
 								stop();
 							}
 							model.removeRow(rowindex);
 						}
 					});
+
+					JMenuItem mnuMeta = new JMenuItem(new AbstractAction(
+							"View/Edit Meta Data") {
+
+						@Override
+						public void actionPerformed(ActionEvent arg0) {
+							Song song = model.getSongAt(rowindex);
+							SongMetaDataEditor editor = new SongMetaDataEditor();
+							editor.init(song);
+							editor.setLocationRelativeTo(PlaylistPreviewWindow.this);
+						}
+					});
 					tablePopup.add(mnuRem);
+					tablePopup.add(mnuMeta);
 					tablePopup.show(e.getComponent(), e.getX(), e.getY());
 				}
 			}

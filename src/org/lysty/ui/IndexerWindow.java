@@ -32,7 +32,7 @@ public class IndexerWindow extends LFrame {
 	private static final int INDEXER_WIDTH = 400;
 	private static final int INDEXER_HEIGHT = 300;
 	private static IndexerWindow self;
-	private DefaultListModel<File> model;
+	private DefaultListModel model;
 
 	JList lstFolders;
 	JCheckBox chkIsIncremental;
@@ -115,7 +115,7 @@ public class IndexerWindow extends LFrame {
 		txtDepth = new JTextField();
 
 		setDefaults();
-		model = new DefaultListModel<File>();
+		model = new DefaultListModel();
 		lstFolders.setModel(model);
 		scroller = new JScrollPane(lstFolders);
 
@@ -144,7 +144,7 @@ public class IndexerWindow extends LFrame {
 	public void index() {
 		final File[] files = new File[model.size()];
 		for (int i = 0; i < model.size(); i++) {
-			files[i] = model.get(i);
+			files[i] = (File) model.get(i);
 		}
 
 		Thread thread = new Thread() {

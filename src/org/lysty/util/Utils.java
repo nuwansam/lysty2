@@ -4,8 +4,6 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -175,10 +173,8 @@ public class Utils {
 			return false;
 		file = new File(SETTINGSFILE);
 		try {
-			Files.copy(
-					Paths.get(file.toURI()),
-					Paths.get(new File(workingDir + File.separator
-							+ SETTINGSFILE).toURI()));
+			org.apache.commons.io.FileUtils.copyFile(file, new File(workingDir
+					+ File.separator + SETTINGSFILE));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -265,8 +261,7 @@ public class Utils {
 				// copy the entire folder
 				try {
 					org.apache.commons.io.FileUtils.copyDirectoryToDirectory(
-							pluginJarFile.getParentFile(),
-							destFolder);
+							pluginJarFile.getParentFile(), destFolder);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					logger.error("Error copying directory: "

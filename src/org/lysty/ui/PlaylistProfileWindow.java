@@ -69,7 +69,7 @@ public class PlaylistProfileWindow extends LFrame implements
 	PlaylistProfileModel playlistModel;
 	protected JPopupMenu tablePopup;
 	private JSpinner spnSize;
-	private JComboBox<String> cmbSizeType;
+	private JComboBox cmbSizeType;
 	private JComboBox cmbStrategy;
 	private StrategySettingsWindow strategySettingsWindow;
 	private JToggleButton chkIsCircular;
@@ -295,17 +295,16 @@ public class PlaylistProfileWindow extends LFrame implements
 
 		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
 		cmbStrategy = new JComboBox();
-		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
+		cmbStrategy.setModel(new DefaultComboBoxModel(list
 				.toArray(new PlaylistGenerator[list.size()])));
 
-		cmbStrategy.setRenderer(new ListCellRenderer<PlaylistGenerator>() {
+		cmbStrategy.setRenderer(new ListCellRenderer() {
 
 			@Override
-			public Component getListCellRendererComponent(
-					JList<? extends PlaylistGenerator> list,
-					PlaylistGenerator value, int index, boolean isSelected,
-					boolean cellHasFocus) {
-				JLabel lbl = new JLabel(value.getStrategyDisplayName());
+			public Component getListCellRendererComponent(JList arg0,
+					Object arg1, int arg2, boolean arg3, boolean arg4) {
+				JLabel lbl = new JLabel(((PlaylistGenerator) arg1)
+						.getStrategyDisplayName());
 				return lbl;
 			}
 		});

@@ -343,16 +343,16 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 		btnFillSettings.setIcon(Utils.getIcon(ResourceConstants.SETTINGS_ICON));
 		cmbStrategy = new JComboBox();
 		List<PlaylistGenerator> list = StrategyFactory.getAllStrategies();
-		cmbStrategy.setModel(new DefaultComboBoxModel<PlaylistGenerator>(list
+		cmbStrategy.setModel(new DefaultComboBoxModel(list
 				.toArray(new PlaylistGenerator[list.size()])));
-		cmbStrategy.setRenderer(new ListCellRenderer<PlaylistGenerator>() {
+		cmbStrategy.setRenderer(new ListCellRenderer() {
 
 			@Override
-			public Component getListCellRendererComponent(
-					JList<? extends PlaylistGenerator> list,
-					PlaylistGenerator value, int index, boolean isSelected,
+			public Component getListCellRendererComponent(JList list,
+					Object value, int index, boolean isSelected,
 					boolean cellHasFocus) {
-				JLabel lbl = new JLabel(value.getStrategyDisplayName());
+				JLabel lbl = new JLabel(((PlaylistGenerator) value)
+						.getStrategyDisplayName());
 				return lbl;
 			}
 		});
