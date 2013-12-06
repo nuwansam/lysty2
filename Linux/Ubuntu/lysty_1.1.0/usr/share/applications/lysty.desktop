@@ -1,0 +1,10 @@
+[Desktop Entry]
+Categories=Java;Sound;AudioVideo
+Comment=The Music Player for the Lazy
+Exec=/usr/bin/lysty %U
+Name=Lysty media player
+GenericName=Media Player
+Icon=/usr/share/pixmaps/lysty.png
+MimeType=audio/mpeg
+Name=Lysty
+Type=Application

@@ -1,0 +1,25 @@
+#@author: Ishan A B Ambanwela#
+
+Instructions to build a redistributable package
+for Ubuntu Based Operating Syatems(.deb)
+
+get lysty_1.1.0 folder
+
+open lysty_1.1.0/DEBIAN/control file and change version
+
+put all files and folders which are in lysty_out folder
+(i.e. compiled binalies) to lysty_1.1.0/usr/share/lysty/
+
+rename lysty_1.1.0 folder according to version
+(ex lysty_2.9.1)
+
+in Ubuntu Terminal
+$fakeroot
+
+and set necessary permissions to all files and folders
+which are in lysty_x.x.x folder
+
+then
+$dpkg -b lysty_x.x.x
+
+should generate the lysty_x.x.x.deb file

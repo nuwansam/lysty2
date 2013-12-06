@@ -1,0 +1,11 @@
+Package: lysty
+Version: 1.1.0
+Architecture: all
+Maintainer: Ishan A B Ambanwela <ishanaba@gmail.com>
+Original-Maintainer: Nuwan Samarasekara <nuwansam@gmail.com>
+Depends: openjdk-7-jre, python-nautilus
+Section: Sound
+Priority: optional
+Homepage: http://www.lystyplayer.com
+Description: Music Player
+ Lysty is a music player designed to be less intrusive for the user.

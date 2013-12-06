@@ -1,0 +1,3 @@
+?package(lysty):command="/usr/bin/lysty" needs="X11" \
+              section="Applications/Sound" title="Lysty Audio player" \
+              icon="/usr/share/pixmaps/lysty.png" hints="Sound"
