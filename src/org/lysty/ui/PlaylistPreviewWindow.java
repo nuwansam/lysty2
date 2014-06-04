@@ -9,9 +9,13 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -97,6 +101,9 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				if (event.getEventType() == PlayEvent.EventType.SONG_ENDED) {
 					// previous song has ended;
 					playerPanel.setState(PlayState.STOPPED);
+					DBHandler.getInstance().insertPlayRecord(
+							list.get(currentSongIndex),
+							Calendar.getInstance().getTime(), true);
 					playNextSong();
 				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
 					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
@@ -172,6 +179,7 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 					return;
 				if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
 					JPopupMenu tablePopup = new JPopupMenu();
+					table.setComponentPopupMenu(tablePopup);
 					JMenuItem mnuRem = new JMenuItem(new AbstractAction(
 							"Remove") {
 
@@ -630,7 +638,11 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void play(int playFrom) {
+		if (list.isEmpty()) {
+			addLuckySuggestion();
+		}
 		playSong(currentSongIndex, playFrom);
+
 	}
 
 	private void playSong(int index, int playFrom) {
@@ -659,6 +671,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void stop() {
+		DBHandler.getInstance().insertPlayRecord(list.get(currentSongIndex),
+				Calendar.getInstance().getTime(), false);
 		playerPanel.setState(PlayerPanel.PlayState.STOPPED);
 		playerPanel.setCurrentSongProgress(0);
 		SongPlayer.getInstance().stop();
@@ -667,6 +681,8 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void next() {
 		manuallySkipped.add(list.get(currentSongIndex));
+		DBHandler.getInstance().insertPlayRecord(list.get(currentSongIndex),
+				Calendar.getInstance().getTime(), false);
 		playNextSong();
 	}
 
@@ -783,4 +799,57 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 		}
 	}
 
+	@Override
+	public void addLuckySuggestion() {
+		// TODO Auto-generated method stub
+		List<Song> allSongs = DBHandler.getInstance().getSongs(null);
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		List<Map<String, Object>> history = DBHandler.getInstance().getHistory(
+				cal.getTime());
+		Map<Long, Double> songWeights = new HashMap<Long, Double>();
+		Long songId;
+		Long completedCnt, uncompletedCnt;
+		Double weight, min = null;
+		for (Map<String, Object> map : history) {
+			songId = (Long) map.get("SONGID");
+			completedCnt = (Long) map.get("COMPLETED_CNT");
+			if (completedCnt == null)
+				completedCnt = 0l;
+			uncompletedCnt = (Long) map.get("UNCOMPLETED_CNT");
+			if (uncompletedCnt == null)
+				uncompletedCnt = 0l;
+			weight = completedCnt - uncompletedCnt * 0.2;
+			songWeights.put(songId, weight);
+			if (min == null || min > weight) {
+				min = weight;
+			}
+		}
+
+		// if there are negative weights, then adjust such that the minimum
+		// weight is 0 and the rest is shifted accordingly
+		if (min < 0) {
+			min *= -1;
+			Iterator<Entry<Long, Double>> it = songWeights.entrySet()
+					.iterator();
+			Entry<Long, Double> entry;
+			while (it.hasNext()) {
+				entry = it.next();
+				entry.setValue(entry.getValue() + min);
+			}
+		}
+
+		Iterator<Entry<Long, Double>> it = songWeights.entrySet().iterator();
+		Entry<Long, Double> entry;
+		Double weightSum = 0d;
+		while (it.hasNext()) {
+			entry = it.next();
+			weightSum += entry.getValue();
+		}
+
+		double random = (Math.random() * weightSum);
+		enqueueSong(DBHandler.getInstance().getSong(
+				Utils.getRandomPick(songWeights, random)));
+		// playNextSong();
+	}
 }

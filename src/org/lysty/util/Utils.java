@@ -4,6 +4,9 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -295,5 +298,19 @@ public class Utils {
 	public static boolean getRandomBoolean(int probability) {
 		int c = (int) (Math.random() * 100);
 		return c >= (100 - probability);
+	}
+
+	public static Long getRandomPick(Map<Long, Double> songWeights,
+			double random) {
+		double cnt = 0d;
+		Iterator<Entry<Long, Double>> it = songWeights.entrySet().iterator();
+		Entry<Long, Double> entry;
+		while (it.hasNext()) {
+			entry = it.next();
+			cnt += entry.getValue();
+			if (cnt >= random)
+				return entry.getKey();
+		}
+		return null;
 	}
 }

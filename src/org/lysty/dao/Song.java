@@ -18,8 +18,17 @@ public class Song {
 
 	long id;
 	String name;
+	String path;
 	File file;
 	Map<String, String> attributes = new HashMap<String, String>();
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
 
 	public Song(File file) {
 		setFile(file);

@@ -8,6 +8,20 @@
 		from songs where path=#{filepath};
 	</select>
 
+	<select id="getSong" parameterType="long" resultType="Song">
+		select *
+		from songs where id=#{id};
+	</select>
+
+<select id="getPlayHistory" parameterType="Date" resultType="map">
+select cast(t1.songid or t2.songid as long) as songid,t2.completed_cnt,t1.uncompleted_cnt from
+(select songid, count(*) as uncompleted_cnt from history where is_completed=false and play_time > #{time} group by songid) as t1
+left join
+(select songid, count(*) as completed_cnt from history where is_completed=true and play_time > #{time} group by songid) as t2
+on t1.songid=t2.songid;
+</select>
+
+
 	<select id="getAttributes" parameterType="Song" resultType="map">
 		select attribute,value from attribs where songid=#{id};
 	</select>
@@ -27,6 +41,11 @@
 	<insert id="insertSong" parameterType="Song">
 		insert into songs
 		(name,path) values (#{name},#{filepath});
+	</insert>
+
+	<insert id="insertPlayRecord" parameterType="map">
+		insert into history
+		(songid,play_time,is_completed) values (#{0},#{1},#{2});
 	</insert>
 
 	<select id="insertAttribute" parameterType="Map">

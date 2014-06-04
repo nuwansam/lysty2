@@ -1,5 +1,6 @@
 package org.lysty.db;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ public interface DBMapper {
 
 	List<Map<String, String>> getFolderIndexMap();
 
+	List<Map<String, Object>> getPlayHistory(Date dt);
+
 	void setFolderIndexTimestamp(String folder, Long timestamp);
 
 	List<Map<String, String>> getSongs(String parentFolder);
@@ -32,4 +35,8 @@ public interface DBMapper {
 	void setLastDBScriptNum(int last);
 
 	void setAttribute(long songId, String feature, String newValue);
+
+	Long insertPlayRecord(long id, Date time, boolean isCompleted);
+
+	Song getSong(long id);
 }

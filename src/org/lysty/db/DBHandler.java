@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -161,6 +162,22 @@ public class DBHandler {
 		return id;
 	}
 
+	public Song getSong(long id) {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		Song song = null;
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			song = mapper.getSong(id);
+			song.setFile(new File(song.getPath()));
+			fillAttributes(song);
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+		return song;
+	}
+
 	public void insertAttributes(Song song) {
 		SqlSession session = DBHandler.sqlSessionFactory.openSession();
 		try {
@@ -231,6 +248,23 @@ public class DBHandler {
 			session.close();
 		}
 		return song;
+
+	}
+
+	public List<Map<String, Object>> getHistory(Date date) {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			List<Map<String, Object>> list = mapper.getPlayHistory(date);
+			if (list == null)
+				return null;
+			return list;
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+		return null;
 
 	}
 
@@ -437,4 +471,20 @@ public class DBHandler {
 	public List<Song> getAllSongs() {
 		return getSongs(null);
 	}
+
+	public void insertPlayRecord(Song song, Date time, boolean isCompleted) {
+		SqlSession session = DBHandler.sqlSessionFactory.openSession();
+		Long id = INSERTION_FAIL_ID;
+		try {
+			DBMapper mapper = session.getMapper(DBMapper.class);
+			id = mapper.insertPlayRecord(song.getId(), time, isCompleted);
+			session.commit();
+		} catch (Exception e) {
+			logger.error("DB Error", e);
+		} finally {
+			session.close();
+		}
+
+	}
+
 }

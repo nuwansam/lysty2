@@ -19,4 +19,6 @@ public interface PlayPanelListener {
 	public void setRandomize(boolean isRandom);
 
 	public void cancelTimer();
+
+	public void addLuckySuggestion();
 }

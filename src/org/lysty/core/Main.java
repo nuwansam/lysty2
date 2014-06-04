@@ -213,14 +213,7 @@ public class Main {
 				@Override
 				public void run() {
 					PlaylistPreviewWindow.getInstance();
-					/*
-					 * Song song = DBHandler .getInstance() .getSong( new File(
-					 * "D:\\Songs\\English\\English love songs\\Westlife - My Love.mp3"
-					 * )); Song song2 = DBHandler .getInstance() .getSong( new
-					 * File(
-					 * "D:\\Songs\\English\\Westlife\\Westlife - My Love.mp3"));
-					 * System.out.println(song.equals(song2));
-					 */
+
 				}
 			});
 		}

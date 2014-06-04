@@ -330,6 +330,7 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				listener.setRandomize(btnRandom.isSelected());
 			}
 		});
+
 		btnRandom.setIcon(Utils.getIcon(ResourceConstants.SHUFFLE_ICON));
 		btnRandom.setSelected(false);
 
