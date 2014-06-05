@@ -400,10 +400,18 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				+ getTimeFormattedString(progress.getMaximum()));
 	}
 
+	public int getCurrentSongLength() {
+		return progress.getMaximum();
+	}
+
 	private String getTimeFormattedString(int val) {
 		int mins = val / 60;
 		int secs = val % 60;
 		return mins + "." + ((secs < 10) ? "0" + secs : secs);
+	}
+
+	public int getPausedOnFrame() {
+		return this.pausedOnFrame;
 	}
 
 	public void setPausedOnFrame(int frame) {
@@ -451,6 +459,10 @@ public class PlayerPanel extends JPanel implements StrategySettingsListener {
 				.setToolTipText("Fill strategy to use to generate the next songs for the playlist");
 		btnFillSettings.setToolTipText("Settings for the fill strategy");
 		btnInfin.setToolTipText("InfiniPlay Mode");
+	}
+
+	public boolean isMoreThanHalfOfCurrentSongPlayed() {
+		return (double) getCurrentProgress() / (double) getCurrentSongLength() > 0.5;
 	}
 
 }

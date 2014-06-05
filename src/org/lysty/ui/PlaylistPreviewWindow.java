@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,6 +44,8 @@ import org.lysty.core.AppSettingsManager;
 import org.lysty.core.PlaylistGenerator;
 import org.lysty.core.SongPlayer;
 import org.lysty.core.StrategyFactory;
+import org.lysty.dao.HistoryEntry;
+import org.lysty.dao.HistoryStatRecord;
 import org.lysty.dao.Song;
 import org.lysty.dao.SongSelectionProfile;
 import org.lysty.db.DBHandler;
@@ -101,9 +104,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 				if (event.getEventType() == PlayEvent.EventType.SONG_ENDED) {
 					// previous song has ended;
 					playerPanel.setState(PlayState.STOPPED);
-					DBHandler.getInstance().insertPlayRecord(
-							list.get(currentSongIndex),
-							Calendar.getInstance().getTime(), true);
+					DBHandler.getInstance().insertHistoryEntry(
+							new HistoryEntry(
+									list.get(currentSongIndex).getId(),
+									Calendar.getInstance().getTime(), true));
 					playNextSong();
 				} else if (event.getEventType() == PlayEvent.EventType.PLAY_EXCEPTION) {
 					JOptionPane.showMessageDialog(PlaylistPreviewWindow.this,
@@ -671,8 +675,10 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 
 	@Override
 	public void stop() {
-		DBHandler.getInstance().insertPlayRecord(list.get(currentSongIndex),
-				Calendar.getInstance().getTime(), false);
+		DBHandler.getInstance().insertHistoryEntry(
+				new HistoryEntry(list.get(currentSongIndex).getId(), Calendar
+						.getInstance().getTime(), playerPanel
+						.isMoreThanHalfOfCurrentSongPlayed()));
 		playerPanel.setState(PlayerPanel.PlayState.STOPPED);
 		playerPanel.setCurrentSongProgress(0);
 		SongPlayer.getInstance().stop();
@@ -681,8 +687,6 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void next() {
 		manuallySkipped.add(list.get(currentSongIndex));
-		DBHandler.getInstance().insertPlayRecord(list.get(currentSongIndex),
-				Calendar.getInstance().getTime(), false);
 		playNextSong();
 	}
 
@@ -802,54 +806,103 @@ public class PlaylistPreviewWindow extends LFrame implements PlayPanelListener {
 	@Override
 	public void addLuckySuggestion() {
 		// TODO Auto-generated method stub
-		List<Song> allSongs = DBHandler.getInstance().getSongs(null);
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE, -1);
-		List<Map<String, Object>> history = DBHandler.getInstance().getHistory(
+		List<HistoryStatRecord> history = DBHandler.getInstance().getHistory(
 				cal.getTime());
-		Map<Long, Double> songWeights = new HashMap<Long, Double>();
-		Long songId;
+		HistoryStatRecord historyEntry;
+		if (history.isEmpty()) {
+			List<Song> songs = DBHandler.getInstance().getAllSongs();
+			int len = songs.size();
+			Date date = Calendar.getInstance().getTime();
+			for (int i = 0; i < 5; i++) {
+				historyEntry = new HistoryStatRecord(songs.get(
+						(int) (Math.random() * len)).getId(), 1l, 1l);
+				history.add(historyEntry);
+			}
+		}
+		Map<Song, Double> songWeights = new HashMap<Song, Double>();
+		Song song;
 		Long completedCnt, uncompletedCnt;
-		Double weight, min = null;
-		for (Map<String, Object> map : history) {
-			songId = (Long) map.get("SONGID");
-			completedCnt = (Long) map.get("COMPLETED_CNT");
+		Double weight, min = null, max = null;
+		for (HistoryStatRecord map : history) {
+			song = map.getSong();
+			completedCnt = (Long) map.getCompletedCount();
 			if (completedCnt == null)
 				completedCnt = 0l;
-			uncompletedCnt = (Long) map.get("UNCOMPLETED_CNT");
+			uncompletedCnt = (Long) map.getUncompletedCount();
 			if (uncompletedCnt == null)
 				uncompletedCnt = 0l;
 			weight = completedCnt - uncompletedCnt * 0.2;
-			songWeights.put(songId, weight);
+			songWeights.put(song, weight);
 			if (min == null || min > weight) {
 				min = weight;
 			}
-		}
-
-		// if there are negative weights, then adjust such that the minimum
-		// weight is 0 and the rest is shifted accordingly
-		if (min < 0) {
-			min *= -1;
-			Iterator<Entry<Long, Double>> it = songWeights.entrySet()
-					.iterator();
-			Entry<Long, Double> entry;
-			while (it.hasNext()) {
-				entry = it.next();
-				entry.setValue(entry.getValue() + min);
+			if (max == null || max < weight) {
+				max = weight;
 			}
 		}
 
-		Iterator<Entry<Long, Double>> it = songWeights.entrySet().iterator();
-		Entry<Long, Double> entry;
+		// adjust the weights such that the minimum
+		// weight is 0 and the rest is shifted accordingly
+		// if all have same weight, dont adjust
+		if (min == max)
+			min = 0d;
+
+		min *= -1;
+		Iterator<Entry<Song, Double>> it = songWeights.entrySet().iterator();
+		Entry<Song, Double> entry;
 		Double weightSum = 0d;
+		List<Song> suggestionList = new ArrayList<Song>();
 		while (it.hasNext()) {
 			entry = it.next();
+			entry.setValue(entry.getValue() + min);
 			weightSum += entry.getValue();
+			suggestionList.add(entry.getKey());
+		}
+
+		Double avgWeight = weightSum / suggestionList.size();
+		// expand the candidate list by getting additional recommended songs
+		try {
+			SongSelectionProfile profile = createSelectionProfile(suggestionList);
+			suggestionList = StrategyFactory.getPlaylistByStrategy(
+					profile.getStrategy(), profile,
+					profile.getStrategyConfig(), true, true, null);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// put the new ones to the weigtmap with avg weight
+		for (Song song1 : suggestionList) {
+			if (!songWeights.containsKey(song1)) {
+				songWeights.put(song1, avgWeight);
+				weightSum += avgWeight;
+			}
 		}
 
 		double random = (Math.random() * weightSum);
-		enqueueSong(DBHandler.getInstance().getSong(
-				Utils.getRandomPick(songWeights, random)));
+		enqueueSong(Utils.getRandomPick(songWeights, random));
 		// playNextSong();
+	}
+
+	private SongSelectionProfile createSelectionProfile(
+			List<Song> suggestionList) {
+		SongSelectionProfile profile = new SongSelectionProfile();
+		profile.setRelPosMap(suggestionList);
+		profile.setSize((int) (suggestionList.size() * 1.6));
+		profile.setSizeType(SongSelectionProfile.SIZE_TYPE_LENGTH);
+
+		StrategyConfiguration currentStrategySettings = playerPanel
+				.getCurrentStrategySettings();
+		PlaylistGenerator strategy = playerPanel.getCurrentStrategy();
+		if (currentStrategySettings == null)
+			currentStrategySettings = StrategyFactory
+					.getDefaultOrLastSettings(strategy);
+		profile.setStrategyConfig(currentStrategySettings);
+
+		profile.setStrategy(strategy);
+		profile.setStrategyConfig(profile.getStrategyConfig());
+		return profile;
 	}
 }

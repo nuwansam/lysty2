@@ -158,5 +158,4 @@ public class Song {
 	public void setAttribute(String feature, String value) {
 		attributes.put(feature, value);
 	}
-
 }

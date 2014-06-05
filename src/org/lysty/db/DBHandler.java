@@ -25,6 +25,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.log4j.Logger;
 import org.h2.tools.RunScript;
+import org.lysty.dao.HistoryEntry;
+import org.lysty.dao.HistoryStatRecord;
 import org.lysty.dao.Song;
 import org.lysty.extractors.FeatureExtractor;
 import org.lysty.ui.Modification;
@@ -251,11 +253,11 @@ public class DBHandler {
 
 	}
 
-	public List<Map<String, Object>> getHistory(Date date) {
+	public List<HistoryStatRecord> getHistory(Date date) {
 		SqlSession session = DBHandler.sqlSessionFactory.openSession();
 		try {
 			DBMapper mapper = session.getMapper(DBMapper.class);
-			List<Map<String, Object>> list = mapper.getPlayHistory(date);
+			List<HistoryStatRecord> list = mapper.getPlayHistory(date);
 			if (list == null)
 				return null;
 			return list;
@@ -472,12 +474,12 @@ public class DBHandler {
 		return getSongs(null);
 	}
 
-	public void insertPlayRecord(Song song, Date time, boolean isCompleted) {
+	public void insertHistoryEntry(HistoryEntry entry) {
 		SqlSession session = DBHandler.sqlSessionFactory.openSession();
 		Long id = INSERTION_FAIL_ID;
 		try {
 			DBMapper mapper = session.getMapper(DBMapper.class);
-			id = mapper.insertPlayRecord(song.getId(), time, isCompleted);
+			id = mapper.insertHistoryEntry(entry);
 			session.commit();
 		} catch (Exception e) {
 			logger.error("DB Error", e);

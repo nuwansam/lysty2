@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.lysty.dao.HistoryEntry;
+import org.lysty.dao.HistoryStatRecord;
 import org.lysty.dao.Song;
 
 public interface DBMapper {
@@ -18,7 +20,7 @@ public interface DBMapper {
 
 	List<Map<String, String>> getFolderIndexMap();
 
-	List<Map<String, Object>> getPlayHistory(Date dt);
+	List<HistoryStatRecord> getPlayHistory(Date dt);
 
 	void setFolderIndexTimestamp(String folder, Long timestamp);
 
@@ -36,7 +38,7 @@ public interface DBMapper {
 
 	void setAttribute(long songId, String feature, String newValue);
 
-	Long insertPlayRecord(long id, Date time, boolean isCompleted);
+	Long insertHistoryEntry(HistoryEntry entry);
 
 	Song getSong(long id);
 }

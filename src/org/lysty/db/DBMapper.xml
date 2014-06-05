@@ -13,13 +13,19 @@
 		from songs where id=#{id};
 	</select>
 
-<select id="getPlayHistory" parameterType="Date" resultType="map">
-select cast(t1.songid or t2.songid as long) as songid,t2.completed_cnt,t1.uncompleted_cnt from
-(select songid, count(*) as uncompleted_cnt from history where is_completed=false and play_time > #{time} group by songid) as t1
-left join
-(select songid, count(*) as completed_cnt from history where is_completed=true and play_time > #{time} group by songid) as t2
-on t1.songid=t2.songid;
-</select>
+	<select id="getPlayHistory" parameterType="Date" resultType="HistoryStatRecord">
+		select cast(t1.songid or t2.songid as long) as songId,t2.completed_cnt
+		as completedCount,t1.uncompleted_cnt as uncompletedCount from
+		(select
+		songid, count(*) as uncompleted_cnt from history where
+		is_completed=false and play_time > #{time} group by songid) as t1
+		left
+		join
+		(select songid, count(*) as completed_cnt from history where
+		is_completed=true and play_time > #{time} group by songid) as t2
+		on
+		t1.songid=t2.songid;
+	</select>
 
 
 	<select id="getAttributes" parameterType="Song" resultType="map">
@@ -43,9 +49,10 @@ on t1.songid=t2.songid;
 		(name,path) values (#{name},#{filepath});
 	</insert>
 
-	<insert id="insertPlayRecord" parameterType="map">
+	<insert id="insertHistoryEntry" parameterType="HistoryEntry">
 		insert into history
-		(songid,play_time,is_completed) values (#{0},#{1},#{2});
+		(songid,play_time,is_completed) values
+		(#{songId},#{playTime},#{isCompleted});
 	</insert>
 
 	<select id="insertAttribute" parameterType="Map">
@@ -55,7 +62,8 @@ on t1.songid=t2.songid;
 
 	<select id="setAttribute" parameterType="Map">
 		merge into attribs
-		(songid,attribute,value) key(songid,attribute) values (#{0},#{1},#{2});
+		(songid,attribute,value) key(songid,attribute) values
+		(#{0},#{1},#{2});
 	</select>
 
 	<select id="setFolderIndexTimestamp" parameterType="Map">

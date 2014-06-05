@@ -5,6 +5,8 @@
 <configuration>
 	<typeAliases>
 		<typeAlias type="org.lysty.dao.Song" alias="Song" />
+		<typeAlias type="org.lysty.dao.HistoryStatRecord" alias="HistoryStatRecord" />
+		<typeAlias type="org.lysty.dao.HistoryEntry" alias="HistoryEntry" />
 	</typeAliases>
 
 	<environments default="development">
@@ -12,8 +14,7 @@
 			<transactionManager type="JDBC" />
 			<dataSource type="POOLED">
 				<property name="driver" value="org.h2.Driver" />
-				<property name="url"
-					value="jdbc:h2:file:${db_dir}/lystydb.db;" />
+				<property name="url" value="jdbc:h2:file:${db_dir}/lystydb.db;" />
 				<!-- <property name="url" value="jdbc:h2:tcp://localhost/~/test;AUTO_SERVER=TRUE" 
 					/> -->
 				<property name="username" value="sa" />

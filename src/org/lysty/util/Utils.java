@@ -13,6 +13,7 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
+import org.lysty.dao.Song;
 
 public class Utils {
 
@@ -300,11 +301,11 @@ public class Utils {
 		return c >= (100 - probability);
 	}
 
-	public static Long getRandomPick(Map<Long, Double> songWeights,
+	public static Song getRandomPick(Map<Song, Double> songWeights,
 			double random) {
 		double cnt = 0d;
-		Iterator<Entry<Long, Double>> it = songWeights.entrySet().iterator();
-		Entry<Long, Double> entry;
+		Iterator<Entry<Song, Double>> it = songWeights.entrySet().iterator();
+		Entry<Song, Double> entry;
 		while (it.hasNext()) {
 			entry = it.next();
 			cnt += entry.getValue();
